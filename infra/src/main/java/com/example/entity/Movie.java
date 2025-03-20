@@ -1,7 +1,10 @@
 package com.example.entity;
 
+import com.example.enums.Genre;
+import com.example.enums.Rating;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -22,7 +25,8 @@ public class Movie extends BaseEntity {
     private String title;
 
     @Column
-    private String rating;
+    @Enumerated(EnumType.STRING)
+    private Rating rating;
 
     @Column
     private LocalDateTime releaseDate;
@@ -34,12 +38,14 @@ public class Movie extends BaseEntity {
     private int runningTime;
 
     @Column
-    private String genre;
+    @Enumerated(EnumType.STRING)
+    private Genre genre;
 
     @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY)
     private List<Screening> screenings = new ArrayList<>();
 
-    public Movie(String title, String rating, LocalDateTime releaseDate, String thumbnailImage, int runningTime, String genre){
+    @Builder
+    private Movie(String title, Rating rating, LocalDateTime releaseDate, String thumbnailImage, int runningTime, Genre genre) {
         this.title = title;
         this.rating = rating;
         this.releaseDate = releaseDate;
