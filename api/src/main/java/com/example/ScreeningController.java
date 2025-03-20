@@ -13,8 +13,8 @@ public class ScreeningController {
 
     private final ScreeningService screeningService;
 
-    @GetMapping("/api/screenings")
-    public List<MovieScreeningResponse> getSchedules(@RequestParam("theaterId") Long theaterId) {
+    @GetMapping("/screenings")
+    public List<MovieScreeningResponse> getSchedules(@RequestParam("theaterId") int theaterId) {
         return screeningService.getSchedules(theaterId);
     }
 }

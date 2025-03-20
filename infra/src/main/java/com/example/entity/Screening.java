@@ -33,8 +33,4 @@ public class Screening extends BaseEntity {
     @JoinColumn(name = "theater_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Theater theater;
 
-    public Screening(Movie movie, Theater theater){
-        this.movie = movie;
-        this.theater = theater;
-    }
 }
