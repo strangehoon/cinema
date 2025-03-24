@@ -2,11 +2,8 @@ package com.example.dto;
 
 import com.example.entity.Movie;
 import com.example.entity.Screening;
-import com.example.enums.Genre;
-import com.example.enums.Rating;
 import lombok.Builder;
 import lombok.Getter;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;

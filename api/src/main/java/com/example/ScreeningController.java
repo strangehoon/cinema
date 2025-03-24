@@ -14,7 +14,10 @@ public class ScreeningController {
     private final ScreeningService screeningService;
 
     @GetMapping("/screenings")
-    public List<MovieScreeningResponse> getSchedules(@RequestParam("theaterId") int theaterId) {
-        return screeningService.getSchedules(theaterId);
+    public List<MovieScreeningResponse> getSchedules(
+            @RequestParam("theaterId") int theaterId,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "genre", required = false) String genre) {
+        return screeningService.getSchedules(theaterId, title, genre);
     }
 }

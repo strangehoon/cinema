@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ScreeningRepository extends JpaRepository<Screening, Long> {
+public interface ScreeningRepository extends JpaRepository<Screening, Long>, ScreeningRepositoryCustom {
 
     @Query("SELECT s FROM Screening s JOIN FETCH s.movie JOIN FETCH s.theater WHERE s.theater.id = :theaterId")
     List<Screening> findAllByTheaterIdWithMovieAndTheater(@Param("theaterId") int theaterId);
