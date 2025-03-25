@@ -3,6 +3,7 @@ dependencies {
     implementation 'mysql:mysql-connector-java:8.0.33'
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'com.h2database:h2'
+    implementation 'org.hibernate:hibernate-core:6.6.11.Final'
 
     // QueryDsl
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'

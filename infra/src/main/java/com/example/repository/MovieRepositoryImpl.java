@@ -11,6 +11,7 @@ import java.util.List;
 import static com.example.entity.QMovie.movie;
 import static com.example.entity.QScreening.screening;
 import static com.example.entity.QTheater.theater;
+import static com.querydsl.core.types.dsl.Expressions.booleanTemplate;
 
 @Repository
 @RequiredArgsConstructor
@@ -25,15 +26,17 @@ public class MovieRepositoryImpl implements MovieRepositoryCustom {
                 .leftJoin(movie.screenings, screening).fetchJoin()
                 .leftJoin(screening.theater, theater).fetchJoin()
                 .where(
-                        filterByTitle(title),
+                        filterByTitleFTS(title),
                         filterByGenre(genre),
                         movie.releaseDate.before(LocalDateTime.now())
                 )
                 .fetch();
     }
 
-    private BooleanExpression filterByTitle(String title) {
-        return title != null ? movie.title.contains(title) : null;
+    private BooleanExpression filterByTitleFTS(String title) {
+        return (title != null && !title.isEmpty()) ?
+                booleanTemplate("function('match_against', {0}, {1}) > 0", movie.title, title) :
+                null;
     }
 
     private BooleanExpression filterByGenre(Genre genre) {
