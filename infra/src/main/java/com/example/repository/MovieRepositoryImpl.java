@@ -1,6 +1,6 @@
 package com.example.repository;
 
-import com.example.entity.Screening;
+import com.example.entity.Movie;
 import com.example.enums.Genre;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -14,18 +14,17 @@ import static com.example.entity.QTheater.theater;
 
 @Repository
 @RequiredArgsConstructor
-public class ScreeningRepositoryImpl implements ScreeningRepositoryCustom {
+public class MovieRepositoryImpl implements MovieRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public List<Screening> searchScreenings(int theaterId, String title, Genre genre) {
+    public List<Movie> searchMoviesWithScreenings(String title, Genre genre) {
         return jpaQueryFactory
-                .selectFrom(screening)
-                .join(screening.movie, movie).fetchJoin()
-                .join(screening.theater, theater).fetchJoin()
+                .selectFrom(movie)
+                .leftJoin(movie.screenings, screening).fetchJoin()
+                .leftJoin(screening.theater, theater).fetchJoin()
                 .where(
-                        screening.theater.id.eq(theaterId),
                         filterByTitle(title),
                         filterByGenre(genre),
                         movie.releaseDate.before(LocalDateTime.now())
@@ -34,7 +33,7 @@ public class ScreeningRepositoryImpl implements ScreeningRepositoryCustom {
     }
 
     private BooleanExpression filterByTitle(String title) {
-        return title != null ? movie.title.eq(title) : null;
+        return title != null ? movie.title.contains(title) : null;
     }
 
     private BooleanExpression filterByGenre(Genre genre) {

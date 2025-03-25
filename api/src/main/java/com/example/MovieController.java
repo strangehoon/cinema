@@ -9,15 +9,14 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class ScreeningController {
+public class MovieController {
 
-    private final ScreeningService screeningService;
+    private final MovieService movieService;
 
-    @GetMapping("/screenings")
-    public List<MovieScreeningResponse> getSchedules(
-            @RequestParam("theaterId") int theaterId,
+    @GetMapping("/movies")
+    public List<MovieScreeningResponse> getMovies(
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "genre", required = false) String genre) {
-        return screeningService.getSchedules(theaterId, title, genre);
+        return movieService.getMoviesWithScreenings(title, genre);
     }
 }

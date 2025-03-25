@@ -2,6 +2,7 @@ package com.example.dto;
 
 import com.example.entity.Movie;
 import com.example.entity.Screening;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class MovieScreeningResponse {
 
     private String title;
     private String rating;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime releaseDate;
     private String thumbnailImage;
     private int runningTime;
@@ -23,26 +25,30 @@ public class MovieScreeningResponse {
     private String theaterName;
     private List<String> screeningTimes;
 
-    public static MovieScreeningResponse of(Movie movie, List<Screening> screenings) {
+    public static List<MovieScreeningResponse> from(Movie movie) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-        return MovieScreeningResponse.builder()
-                .title(movie.getTitle())
-                .rating(movie.getRating().getValue())
-                .releaseDate(movie.getReleaseDate())
-                .thumbnailImage(movie.getThumbnailImage())
-                .runningTime(movie.getRunningTime())
-                .genre(movie.getGenre().getValue())
-                .theaterName(screenings.get(0).getTheater().getName())
-                .screeningTimes(screenings.stream()
-                        .sorted(Comparator.comparing(Screening::getStartTime))
-                        .map(screening -> {
-                            LocalDateTime startTime = screening.getStartTime();
-                            LocalDateTime endTime = screening.getEndTime();
-                            return startTime.format(formatter) + " : " + endTime.format(formatter);
-                        })
-                        .sorted()
-                        .collect(Collectors.toList()))
-                .build();
+        return movie.getScreenings().stream()
+                .collect(Collectors.groupingBy(s -> s.getTheater().getName()))
+                .entrySet().stream()
+                .map(entry -> MovieScreeningResponse.builder()
+                        .title(movie.getTitle())
+                        .rating(movie.getRating().getValue())
+                        .releaseDate(movie.getReleaseDate())
+                        .thumbnailImage(movie.getThumbnailImage())
+                        .runningTime(movie.getRunningTime())
+                        .genre(movie.getGenre().getValue())
+                        .theaterName(entry.getKey())
+                        .screeningTimes(entry.getValue().stream()
+                                .sorted(Comparator.comparing(Screening::getStartTime))
+                                .map(screening -> {
+                                    LocalDateTime startTime = screening.getStartTime();
+                                    LocalDateTime endTime = screening.getEndTime();
+                                    return startTime.format(formatter) + " : " + endTime.format(formatter);
+                                })
+                                .collect(Collectors.toList()))
+                        .build()
+                )
+                .collect(Collectors.toList());
     }
 }
