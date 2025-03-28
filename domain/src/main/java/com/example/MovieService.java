@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -18,6 +19,11 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
 
+    @Cacheable(
+            value = "movies",
+            key = "#genre",
+            condition = "#genre != null and #title == null", cacheManager = "contentCacheManager"
+    )
     public List<MovieScreeningResponse> getMoviesWithScreenings(String title, String genre) {
         Genre genreEnum = genre != null ? Genre.valueOf(genre.toUpperCase()) : null;
         List<Movie> movies = movieRepository.searchMoviesWithScreenings(title, genreEnum);

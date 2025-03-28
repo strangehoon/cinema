@@ -15,8 +15,8 @@ public class MovieController {
 
     @GetMapping("/movies")
     public List<MovieScreeningResponse> getMovies(
-            @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "genre", required = false) String genre) {
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String genre) {
         return movieService.getMoviesWithScreenings(title, genre);
     }
 }
