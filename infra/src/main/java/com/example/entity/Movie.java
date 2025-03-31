@@ -21,23 +21,23 @@ public class Movie extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(length = 30)
     private String title;
 
-    @Column
+    @Column(length = 20)
     @Enumerated(EnumType.STRING)
     private Rating rating;
 
     @Column
-    private LocalDateTime releaseDate;
+    private LocalDateTime releasedAt;
 
-    @Column
+    @Column(length = 50)
     private String thumbnailImage;
 
     @Column
     private int runningTime;
 
-    @Column
+    @Column(length = 20)
     @Enumerated(EnumType.STRING)
     private Genre genre;
 
@@ -45,10 +45,10 @@ public class Movie extends BaseEntity {
     private List<Screening> screenings = new ArrayList<>();
 
     @Builder
-    private Movie(String title, Rating rating, LocalDateTime releaseDate, String thumbnailImage, int runningTime, Genre genre) {
+    private Movie(String title, Rating rating, LocalDateTime releasedAt, String thumbnailImage, int runningTime, Genre genre) {
         this.title = title;
         this.rating = rating;
-        this.releaseDate = releaseDate;
+        this.releasedAt = releasedAt;
         this.thumbnailImage = thumbnailImage;
         this.runningTime = runningTime;
         this.genre = genre;

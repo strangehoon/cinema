@@ -28,7 +28,7 @@ public class MovieRepositoryImpl implements MovieRepositoryCustom {
                 .where(
                         filterByTitleFTS(title),
                         filterByGenre(genre),
-                        movie.releaseDate.before(LocalDateTime.now())
+                        movie.releasedAt.before(LocalDateTime.now())
                 )
                 .fetch();
     }

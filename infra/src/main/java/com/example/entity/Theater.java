@@ -15,10 +15,6 @@ public class Theater extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(length = 30)
     private String name;
-
-    public Theater(String name){
-        this.name = name;
-    }
 }

@@ -30,10 +30,10 @@ public class MovieScreeningResponse {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
         List<String> sortedScreeningTimes = screenings.stream()
-                .sorted(Comparator.comparing(Screening::getStartTime))
+                .sorted(Comparator.comparing(Screening::getStartedAt))
                 .map(screening -> {
-                    LocalDateTime startTime = screening.getStartTime();
-                    LocalDateTime endTime = screening.getEndTime();
+                    LocalDateTime startTime = screening.getStartedAt();
+                    LocalDateTime endTime = screening.getEndedAt();
                     return startTime.format(formatter) + " : " + endTime.format(formatter);
                 })
                 .collect(Collectors.toList());
@@ -41,7 +41,7 @@ public class MovieScreeningResponse {
         return MovieScreeningResponse.builder()
                 .title(movie.getTitle())
                 .rating(movie.getRating().getValue())
-                .releaseDate(movie.getReleaseDate())
+                .releaseDate(movie.getReleasedAt())
                 .thumbnailImage(movie.getThumbnailImage())
                 .runningTime(movie.getRunningTime())
                 .genre(movie.getGenre().getValue())

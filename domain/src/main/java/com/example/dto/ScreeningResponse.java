@@ -16,8 +16,8 @@ public class ScreeningResponse {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
         return ScreeningResponse.builder()
-                .startTime(screening.getStartTime().format(formatter))
-                .endTime(screening.getEndTime().format(formatter))
+                .startTime(screening.getStartedAt().format(formatter))
+                .endTime(screening.getEndedAt().format(formatter))
                 .build();
     }
 }
