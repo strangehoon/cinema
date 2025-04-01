@@ -1,4 +1,4 @@
--- THEATERS (100개)
+-- THEATERS (100 rows)
 INSERT INTO theaters (name, created_at, created_by, updated_at, updated_by)
 SELECT
     CONCAT('Theater_', n),
@@ -13,7 +13,7 @@ FROM (
 LIMIT 100;
 
 
--- MOVIES (10000개)
+-- MOVIES (10000 rows)
 INSERT INTO movies (title, rating, released_at, thumbnail_image, running_time, genre, created_at, created_by, updated_at, updated_by)
 SELECT
     CONCAT('Movie_', n),
@@ -53,7 +53,7 @@ FROM (
 LIMIT 10000;
 
 
--- SCREENINGS (100000개) - started_at < ended_at 보장
+-- SCREENINGS (100000 rows) - started_at < ended_at 보장
 INSERT INTO screenings (date, started_at, ended_at, movie_id, theater_id, created_at, created_by, updated_at, updated_by)
 SELECT
     DATE_ADD('2024-01-01', INTERVAL rand_day DAY) AS rand_date,
@@ -90,14 +90,33 @@ LIMIT 100000;
 -- SCREENING_SEATS (100 theaters * 25 seats = 2500 rows)
 INSERT INTO screening_seats (`row`, `col`, theater_id, created_at, created_by, updated_at, updated_by)
 SELECT
-    r.r,
-    c.c,
+    r.r + 1 AS seat_row,
+    c.c + 1 AS seat_col,
     t.id,
     NOW(), 1, NOW(), 1
 FROM theaters t
 JOIN (
-    SELECT 0 AS r UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
-) r
-JOIN (
     SELECT 0 AS c UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
-) c;
+) AS c
+JOIN (
+    SELECT 0 AS r UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+) AS r
+ORDER BY t.id, seat_row, seat_col;
+
+
+-- USERS (100 rows)
+INSERT INTO users (created_at, created_by, updated_at, updated_by)
+SELECT NOW(), 1, NOW(), 1
+FROM (
+    SELECT a.N + b.N * 10 + 1 AS num
+    FROM (
+        SELECT 0 AS N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+        UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
+    ) a
+    CROSS JOIN (
+        SELECT 0 AS N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+        UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
+    ) b
+    ORDER BY num
+    LIMIT 100
+) AS numbers;
