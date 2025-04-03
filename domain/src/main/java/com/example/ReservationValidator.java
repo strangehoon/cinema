@@ -53,12 +53,8 @@ public class ReservationValidator {
         }
 
         // 5. 해당 좌석이 이미 예약되었는지 확인
-        //List<Reservation> existingReservations = reservationRepository
-        //        .findByScreeningIdAndScreeningSeatIdIn(request.getScreeningId(), request.getSeatIds());
-
-        // 5. 해당 좌석이 이미 예약되었는지 확인(USING 비관적 락)
         List<Reservation> existingReservations = reservationRepository
-                .findByScreeningIdAndScreeningSeatIdInWithLock(request.getScreeningId(), request.getSeatIds());
+                .findByScreeningIdAndScreeningSeatIdIn(request.getScreeningId(), request.getSeatIds());
 
         if (!existingReservations.isEmpty()) {
             throw new IllegalArgumentException("이미 예약된 좌석이 포함되어 있습니다.");

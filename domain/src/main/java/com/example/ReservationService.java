@@ -36,7 +36,7 @@ public class ReservationService {
         Screening screening = screeningRepository.findById(request.getScreeningId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상영 시간표입니다."));
 
-        List<ScreeningSeat> requestedSeats = screeningSeatRepository.findAllById(request.getSeatIds());
+        List<ScreeningSeat> requestedSeats = screeningSeatRepository.findByIdInWithLock(request.getSeatIds());
 
         List<Reservation> newReservations = requestedSeats.stream()
                 .map(seat -> Reservation.builder()
@@ -48,7 +48,7 @@ public class ReservationService {
 
         reservationRepository.saveAll(newReservations);
         reservationEventHandler.sendReservationCompleteMessage(user.getId(), newReservations.size());
-        
+
         return "총 " + newReservations.size() + "개의 좌석이 예약되었습니다.";
     }
 }
