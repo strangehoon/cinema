@@ -2,9 +2,10 @@ package com.example.repository;
 
 import com.example.entity.Movie;
 import com.example.enums.Genre;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface MovieRepositoryCustom {
 
-    List<Movie> searchMoviesWithScreenings(String title, Genre genre);
+    Page<Movie> searchMoviesWithScreenings(String title, Genre genre, Long theaterId, Pageable pageable);
 }

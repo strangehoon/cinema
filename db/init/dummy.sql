@@ -12,9 +12,8 @@ FROM (
 ) t
 LIMIT 100;
 
-
 -- MOVIES (10000 rows)
-INSERT INTO movies (title, rating, released_at, thumbnail_image, running_time, genre, created_at, created_by, updated_at, updated_by)
+INSERT INTO movies (title, rating, released_date, thumbnail_image, running_time, genre, created_at, created_by, updated_at, updated_by)
 SELECT
     CONCAT('Movie_', n),
     CASE FLOOR(RAND() * 3)
@@ -22,7 +21,7 @@ SELECT
         WHEN 1 THEN 'R_15'
         ELSE 'R_19'
     END,
-    DATE_ADD('2010-01-01', INTERVAL FLOOR(RAND() * 5843) DAY),
+    CAST(DATE_ADD('2010-01-01', INTERVAL FLOOR(RAND() * 5843) DAY) AS DATE),
     CONCAT('movie_', n, '.jpg'),
     FLOOR(RAND() * 60 + 90),
     CASE FLOOR(RAND() * 12)

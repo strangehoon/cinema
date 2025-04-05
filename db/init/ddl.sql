@@ -19,7 +19,7 @@ CREATE TABLE movies (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(30),
     rating VARCHAR(20),
-    released_at DATETIME,
+    released_date DATE,
     thumbnail_image VARCHAR(50),
     running_time INT,
     genre VARCHAR(20),

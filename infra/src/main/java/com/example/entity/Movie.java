@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class Movie extends BaseEntity {
     private Rating rating;
 
     @Column
-    private LocalDateTime releasedAt;
+    private LocalDate releasedDate;
 
     @Column(length = 50)
     private String thumbnailImage;
@@ -45,10 +45,10 @@ public class Movie extends BaseEntity {
     private List<Screening> screenings = new ArrayList<>();
 
     @Builder
-    private Movie(String title, Rating rating, LocalDateTime releasedAt, String thumbnailImage, int runningTime, Genre genre) {
+    private Movie(String title, Rating rating, LocalDate releasedAt, String thumbnailImage, int runningTime, Genre genre) {
         this.title = title;
         this.rating = rating;
-        this.releasedAt = releasedAt;
+        this.releasedDate = releasedAt;
         this.thumbnailImage = thumbnailImage;
         this.runningTime = runningTime;
         this.genre = genre;
