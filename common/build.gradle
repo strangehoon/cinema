@@ -1,0 +1,6 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+
+    // infra 모듈 : RedisCacheConfig에서 사용
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+}

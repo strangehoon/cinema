@@ -2,4 +2,5 @@ rootProject.name = 'cinema'
 include 'api'
 include 'domain'
 include 'infra'
+include 'common'
 
