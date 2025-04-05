@@ -52,38 +52,26 @@ FROM (
 LIMIT 10000;
 
 
--- SCREENINGS (100000 rows) - started_at < ended_at 보장
 INSERT INTO screenings (date, started_at, ended_at, movie_id, theater_id, created_at, created_by, updated_at, updated_by)
 SELECT
-    DATE_ADD('2024-01-01', INTERVAL rand_day DAY) AS rand_date,
-    start_dt,
-    end_dt,
-    FLOOR(RAND() * 10000) + 1,
-    FLOOR(RAND() * 100) + 1,
+    DATE_ADD(m.released_date, INTERVAL FLOOR(RAND(m.id + s.n) * 100) DAY),
+    TIMESTAMP(DATE_ADD(m.released_date, INTERVAL FLOOR(RAND(m.id + s.n) * 100) DAY), SEC_TO_TIME(rand_sec)),
+    TIMESTAMP(DATE_ADD(m.released_date, INTERVAL FLOOR(RAND(m.id + s.n) * 100) DAY), SEC_TO_TIME(LEAST(rand_sec + duration_sec, 86399))),
+    m.id,
+    FLOOR(RAND(m.id + s.n) * 100) + 1,
     NOW(), 1, NOW(), 1
-FROM (
+FROM movies m
+JOIN (
+    SELECT 0 AS n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+) s -- 🎯 각 영화당 5개의 상영 정보
+JOIN (
     SELECT
-        rand_day,
-        TIMESTAMP(DATE_ADD('2024-01-01', INTERVAL rand_day DAY), SEC_TO_TIME(rand_sec)) AS start_dt,
-        TIMESTAMP(DATE_ADD('2024-01-01', INTERVAL rand_day DAY), SEC_TO_TIME(LEAST(rand_sec + duration_sec, 86399))) AS end_dt
-    FROM (
-        SELECT
-            @rownum := @rownum + 1 AS rownum,
-            FLOOR(RAND(@rownum) * 365) AS rand_day,
-            FLOOR(RAND(@rownum + 1) * 79200) AS rand_sec,
-            FLOOR(RAND(@rownum + 2) * 10800) + 1 AS duration_sec  -- 최소 1초 이상 보장
-        FROM (
-            SELECT 1 FROM
-                (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) a,
-                (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) b,
-                (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) c,
-                (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) d,
-                (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) e,
-                (SELECT @rownum := 0) r
-        ) base
-    ) derived
-) final
-LIMIT 100000;
+        @row := @row + 1,
+        FLOOR(RAND(@row) * 79200) AS rand_sec,
+        FLOOR(RAND(@row + 1) * 10800) + 1 AS duration_sec
+    FROM (SELECT 1 FROM dual LIMIT 10000) rand_gen, (SELECT @row := 0) r
+) r_gen
+LIMIT 50000;
 
 
 -- SCREENING_SEATS (100 theaters * 25 seats = 2500 rows)

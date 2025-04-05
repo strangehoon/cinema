@@ -2,7 +2,6 @@ package com.example.dto.response;
 
 import com.example.entity.Movie;
 import com.example.entity.Screening;
-import com.example.entity.Theater;
 import lombok.Builder;
 import lombok.Getter;
 import java.time.LocalDate;
@@ -20,10 +19,9 @@ public class MovieScreeningServiceResponse {
     private String thumbnailImage;
     private int runningTime;
     private String genre;
-    private String theaterName;
     private List<ScreeningServiceResponse> screeningServiceResponses;
 
-    public static MovieScreeningServiceResponse from(Movie movie, Theater theater) {
+    public static MovieScreeningServiceResponse from(Movie movie) {
         List<ScreeningServiceResponse> screeningServiceRespons = movie.getScreenings().stream()
                 .filter(screening -> !screening.getDate().isBefore(movie.getReleasedDate()))
                 .sorted(Comparator.comparing(Screening::getStartedAt))
@@ -37,7 +35,6 @@ public class MovieScreeningServiceResponse {
                 .thumbnailImage(movie.getThumbnailImage())
                 .runningTime(movie.getRunningTime())
                 .genre(movie.getGenre().name())
-                .theaterName(theater.getName())
                 .screeningServiceResponses(screeningServiceRespons)
                 .build();
     }

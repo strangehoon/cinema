@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import static com.example.entity.QMovie.movie;
-import static com.example.entity.QScreening.screening;
 
 @Repository
 @RequiredArgsConstructor
@@ -21,48 +20,35 @@ public class MovieRepositoryImpl implements MovieRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Page<Movie> searchMoviesWithScreenings(String title, Genre genre, Long theaterId, Pageable pageable) {
+    public Page<Movie> searchMoviesWithScreenings(String title, Genre genre, Pageable pageable) {
 
-        // Step 1: 특정 극장에서 상영 중인 movieId 조회
-        List<Long> screeningMovieIds = jpaQueryFactory
-                .select(screening.movie.id)
-                .from(screening)
-                .where(screening.theater.id.eq(theaterId))
-                .fetch();
-
-        if (screeningMovieIds.isEmpty()) {
-            return Page.empty(); // 상영 중인 영화 없음
-        }
-
-        // 공통 where 조건
-        BooleanExpression commonCondition = movie.id.in(screeningMovieIds)
-                .and(filterByTitleStartsWith(title))
-                .and(filterByGenre(genre))
-                .and(movie.releasedDate.before(LocalDate.now()));
-
-        // Step 2-1: 본문 조회 (페이징 적용)
-        List<Movie> content = jpaQueryFactory
+        List<Movie> movies = jpaQueryFactory
                 .selectFrom(movie)
-                .where(commonCondition)
+                .where(
+                        filterByTitle(title),
+                        filterByGenre(genre),
+                        movie.releasedDate.before(LocalDate.now())
+                )
                 .orderBy(movie.releasedDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // Step 2-2: 전체 개수 조회 (페이징 정보용)
+        // 페이징을 위한 전체 개수 조회
         long total = jpaQueryFactory
                 .select(movie.count())
                 .from(movie)
-                .where(commonCondition)
+                .where(
+                        filterByTitle(title),
+                        filterByGenre(genre),
+                        movie.releasedDate.before(LocalDate.now())
+                )
                 .fetchOne();
-
-        return new PageImpl<>(content, pageable, total);
+        return new PageImpl<>(movies, pageable, total);
     }
 
-    private BooleanExpression filterByTitleStartsWith(String title) {
-        return (title != null && !title.isEmpty()) ?
-                movie.title.like(title + "%") :
-                null;
+    private BooleanExpression filterByTitle(String title) {
+        return (title != null && !title.isBlank()) ? movie.title.startsWith(title) : null;
     }
 
     private BooleanExpression filterByGenre(Genre genre) {

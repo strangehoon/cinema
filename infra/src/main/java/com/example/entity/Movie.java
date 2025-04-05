@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,7 @@ public class Movie extends BaseEntity {
     private Genre genre;
 
     @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY)
+    @BatchSize(size = 100)
     private List<Screening> screenings = new ArrayList<>();
 
     @Builder

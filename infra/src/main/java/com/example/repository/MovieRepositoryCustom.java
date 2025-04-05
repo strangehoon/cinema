@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface MovieRepositoryCustom {
 
-    Page<Movie> searchMoviesWithScreenings(String title, Genre genre, Long theaterId, Pageable pageable);
+    Page<Movie> searchMoviesWithScreenings(String title, Genre genre, Pageable pageable);
 }

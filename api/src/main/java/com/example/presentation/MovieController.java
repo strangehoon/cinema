@@ -19,12 +19,11 @@ public class MovieController {
     public PageResponse<MovieScreeningResponse> getMovies(
             @RequestParam(name = "title", required = false) String title,
             @RequestParam(name = "genre", required = false) String genre,
-            @RequestParam(name = "theaterId") Long theaterId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         PageResponse<MovieScreeningServiceResponse> serviceResult =
-                movieService.getMoviesWithScreenings(title, genre, theaterId, page, size);
+                movieService.getMoviesWithScreenings(title, genre, page, size);
 
         return PageResponse.from(serviceResult, MovieScreeningResponse::from);
     }

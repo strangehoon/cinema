@@ -15,6 +15,7 @@ public class ScreeningResponse {
     private final LocalDate date;
     private final LocalDateTime startedAt;
     private final LocalDateTime endedAt;
+    private final String theaterName;
 
     public static ScreeningResponse from(ScreeningServiceResponse serviceDto) {
         return ScreeningResponse.builder()
@@ -22,6 +23,7 @@ public class ScreeningResponse {
                 .date(serviceDto.getDate())
                 .startedAt(serviceDto.getStartedAt())
                 .endedAt(serviceDto.getEndedAt())
+                .theaterName(serviceDto.getTheaterName())
                 .build();
     }
 
