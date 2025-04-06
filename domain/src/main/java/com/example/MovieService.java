@@ -22,8 +22,9 @@ public class MovieService {
 
     @Cacheable(
             value = "movies",
-            key = "#genre != null ? #genre : 'all'",
-            condition = "(#genre != null and #title == null and #page == 0) || (#genre == null and #title == null and #page == 0)",
+            key = "#genre != null ? #genre + '_page_' + #page : 'all_page_' + #page",
+            condition = "(#genre != null and #title == null and #page >= 0 and #page < 2) " +
+                    "|| (#genre == null and #title == null and #page >= 0 and #page < 2)",
             cacheManager = "contentCacheManager"
     )
     @Transactional(readOnly = true)
