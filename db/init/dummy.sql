@@ -13,7 +13,7 @@ FROM (
 LIMIT 100;
 
 -- MOVIES (10000 rows)
-INSERT INTO movies (title, rating, released_date, thumbnail_image, running_time, genre, created_at, created_by, updated_at, updated_by)
+INSERT INTO movies (title, rating, released_date, thumbnail_image, running_time_min, genre, created_at, created_by, updated_at, updated_by)
 SELECT
     CONCAT('Movie_', n),
     CASE FLOOR(RAND() * 3)

@@ -36,7 +36,7 @@ public class Movie extends BaseEntity {
     private String thumbnailImage;
 
     @Column
-    private int runningTime;
+    private int runningTimeMin;
 
     @Column(length = 20)
     @Enumerated(EnumType.STRING)
@@ -47,12 +47,12 @@ public class Movie extends BaseEntity {
     private List<Screening> screenings = new ArrayList<>();
 
     @Builder
-    private Movie(String title, Rating rating, LocalDate releasedAt, String thumbnailImage, int runningTime, Genre genre) {
+    private Movie(String title, Rating rating, LocalDate releasedAt, String thumbnailImage, int runningTimeMin, Genre genre) {
         this.title = title;
         this.rating = rating;
         this.releasedDate = releasedAt;
         this.thumbnailImage = thumbnailImage;
-        this.runningTime = runningTime;
+        this.runningTimeMin = runningTimeMin;
         this.genre = genre;
     }
 }

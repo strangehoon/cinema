@@ -21,7 +21,7 @@ CREATE TABLE movies (
     rating VARCHAR(20),
     released_date DATE,
     thumbnail_image VARCHAR(50),
-    running_time INT,
+    running_time_min INT,
     genre VARCHAR(20),
     created_at DATETIME,
     created_by BIGINT,

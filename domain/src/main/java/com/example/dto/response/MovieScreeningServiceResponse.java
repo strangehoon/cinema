@@ -37,7 +37,7 @@ public class MovieScreeningServiceResponse {
                 .rating(movie.getRating().name())
                 .releaseDate(movie.getReleasedDate())
                 .thumbnailImage(movie.getThumbnailImage())
-                .runningTime(movie.getRunningTime())
+                .runningTime(movie.getRunningTimeMin())
                 .genre(movie.getGenre().name())
                 .screeningServiceResponses(screeningServiceRespons)
                 .build();
