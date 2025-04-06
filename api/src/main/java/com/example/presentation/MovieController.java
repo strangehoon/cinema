@@ -17,10 +17,10 @@ public class MovieController {
 
     @GetMapping("/movies")
     public PageResponse<MovieScreeningResponse> getMovies(
-            @RequestParam(name = "title", required = false) String title,
-            @RequestParam(name = "genre", required = false) String genre,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String genre,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
         PageResponse<MovieScreeningServiceResponse> serviceResult =
                 movieService.getMoviesWithScreenings(title, genre, page, size);

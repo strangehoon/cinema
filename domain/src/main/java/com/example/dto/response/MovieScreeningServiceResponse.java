@@ -2,8 +2,10 @@ package com.example.dto.response;
 
 import com.example.entity.Movie;
 import com.example.entity.Screening;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.stream.Collectors;
 
 @Builder
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class MovieScreeningServiceResponse {
 
     private String title;

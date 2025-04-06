@@ -5,7 +5,6 @@ import com.example.dto.response.PageResponse;
 import com.example.entity.Movie;
 import com.example.enums.Genre;
 import com.example.repository.MovieRepository;
-import com.example.repository.TheaterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,16 +19,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class MovieService {
 
     private final MovieRepository movieRepository;
-    private final TheaterRepository theaterRepository;
-
 
     @Cacheable(
             value = "movies",
-            key = "#genre",
-            condition = "#genre != null and #title == null", cacheManager = "contentCacheManager"
+            key = "#genre != null ? #genre : 'all'",
+            condition = "(#genre != null and #title == null and #page == 0) || (#genre == null and #title == null and #page == 0)",
+            cacheManager = "contentCacheManager"
     )
     @Transactional(readOnly = true)
     public PageResponse<MovieScreeningServiceResponse> getMoviesWithScreenings(String title, String genre, int page, int size) {
+
         Genre genreEnum = genre != null ? Genre.valueOf(genre.toUpperCase()) : null;
 
         Page<Movie> moviePage = movieRepository.searchMoviesWithScreenings(
