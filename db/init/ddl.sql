@@ -44,8 +44,8 @@ CREATE TABLE screenings (
 
 CREATE TABLE screening_seats (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    `row` int,
-    `col` int,
+    seat_row int,
+    seat_col int,
     theater_id BIGINT NOT NULL,
     created_at DATETIME,
     created_by BIGINT,

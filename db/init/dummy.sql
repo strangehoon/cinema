@@ -75,7 +75,7 @@ LIMIT 50000;
 
 
 -- SCREENING_SEATS (100 theaters * 25 seats = 2500 rows)
-INSERT INTO screening_seats (`row`, `col`, theater_id, created_at, created_by, updated_at, updated_by)
+INSERT INTO screening_seats (seat_row, seat_col, theater_id, created_at, created_by, updated_at, updated_by)
 SELECT
     r.r + 1 AS seat_row,
     c.c + 1 AS seat_col,
