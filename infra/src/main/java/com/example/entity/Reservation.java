@@ -1,8 +1,8 @@
 package com.example.entity;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +16,8 @@ public class Reservation extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private boolean isReserved = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "screening_seat_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private ScreeningSeat screeningSeat;
@@ -25,6 +27,19 @@ public class Reservation extends BaseEntity {
     private Screening screening;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private User user;
+
+    @Builder
+    private Reservation(boolean isReserved,ScreeningSeat screeningSeat, Screening screening, User user) {
+        this.isReserved = isReserved;
+        this.screeningSeat = screeningSeat;
+        this.screening = screening;
+        this.user = user;
+    }
+
+    public void reserve(User user) {
+        this.user = user;
+        this.isReserved = true;
+    }
 }

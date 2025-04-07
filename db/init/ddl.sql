@@ -1,5 +1,6 @@
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(20),
     created_at DATETIME,
     created_by BIGINT,
     updated_at DATETIME,
@@ -56,8 +57,9 @@ CREATE TABLE screening_seats (
 CREATE TABLE reservations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     screening_seat_id BIGINT NOT NULL,
+    is_reserved BOOLEAN NOT NULL DEFAULT false,
     screening_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
+    user_id BIGINT,
     created_at DATETIME,
     created_by BIGINT,
     updated_at DATETIME,

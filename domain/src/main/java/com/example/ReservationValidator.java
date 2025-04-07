@@ -1,7 +1,6 @@
 package com.example;
 
 import com.example.dto.request.ReservationServiceRequest;
-import com.example.entity.Reservation;
 import com.example.entity.ScreeningSeat;
 import com.example.repository.ReservationRepository;
 import com.example.repository.ScreeningSeatRepository;
@@ -50,14 +49,6 @@ public class ReservationValidator {
             if (cols.get(i) != cols.get(i - 1) + 1) {
                 throw new IllegalArgumentException("좌석은 같은 행에서 인접해야 합니다.");
             }
-        }
-
-        // 5. 해당 좌석이 이미 예약되었는지 확인
-        List<Reservation> existingReservations = reservationRepository
-                .findByScreeningIdAndScreeningSeatIdIn(request.getScreeningId(), request.getSeatIds());
-
-        if (!existingReservations.isEmpty()) {
-            throw new IllegalArgumentException("이미 예약된 좌석이 포함되어 있습니다.");
         }
     }
 }

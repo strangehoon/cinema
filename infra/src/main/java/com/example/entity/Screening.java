@@ -2,6 +2,7 @@ package com.example.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
@@ -34,4 +35,12 @@ public class Screening extends BaseEntity {
     @JoinColumn(name = "theater_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Theater theater;
 
+    @Builder
+    private Screening(LocalDate date, LocalDateTime startedAt, LocalDateTime endedAt, Movie movie, Theater theater) {
+        this.date = date;
+        this.startedAt = startedAt;
+        this.endedAt = endedAt;
+        this.movie = movie;
+        this.theater = theater;
+    }
 }

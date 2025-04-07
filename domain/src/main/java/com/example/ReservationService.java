@@ -1,19 +1,17 @@
 package com.example;
 
 import com.example.dto.request.ReservationServiceRequest;
+import com.example.dto.response.ReservationServiceResponse;
 import com.example.entity.Reservation;
-import com.example.entity.Screening;
-import com.example.entity.ScreeningSeat;
 import com.example.entity.User;
+import com.example.event.ReservationCompletedEvent;
 import com.example.repository.ReservationRepository;
-import com.example.repository.ScreeningRepository;
-import com.example.repository.ScreeningSeatRepository;
 import com.example.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,32 +21,38 @@ public class ReservationService {
     private final ReservationValidator reservationValidator;
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
-    private final ScreeningRepository screeningRepository;
-    private final ScreeningSeatRepository screeningSeatRepository;
-    private final ReservationEventHandler reservationEventHandler;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public String reserveSeats(ReservationServiceRequest request){
+    public ReservationServiceResponse reserveSeats(ReservationServiceRequest request){
 
         reservationValidator.validate(request);
 
         User user = userRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
-        Screening screening = screeningRepository.findById(request.getScreeningId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상영 시간표입니다."));
 
-        List<ScreeningSeat> requestedSeats = screeningSeatRepository.findByIdInWithLock(request.getSeatIds());
+        List<Reservation> reservationsToUpdate = reservationRepository
+                .findByScreeningIdAndScreeningSeatIdInWithLock(request.getScreeningId(), request.getSeatIds());
 
-        List<Reservation> newReservations = requestedSeats.stream()
-                .map(seat -> Reservation.builder()
-                        .screeningSeat(seat)
-                        .screening(screening)
-                        .user(user)
-                        .build())
-                .collect(Collectors.toList());
+        boolean hasReserved = reservationsToUpdate.stream().anyMatch(Reservation::isReserved);
 
-        reservationRepository.saveAll(newReservations);
-        reservationEventHandler.sendReservationCompleteMessage(user.getId(), newReservations.size());
+        if(reservationsToUpdate.size()!=request.getSeatIds().size()){
+            throw new IllegalStateException("요청한 좌석에 대한 Reservation 데이터가 일부 누락되었습니다.");
+        }
 
-        return "총 " + newReservations.size() + "개의 좌석이 예약되었습니다.";
+        if (hasReserved) {
+            throw new IllegalStateException("이미 예약된 좌석이 포함되어 있습니다.");
+        }
+
+        reservationsToUpdate.forEach(reservation -> {
+            reservation.reserve(user);
+        });
+
+        eventPublisher.publishEvent(ReservationCompletedEvent.of(user.getName(), reservationsToUpdate.size()));
+
+        return ReservationServiceResponse.builder()
+                .userId(user.getId())
+                .screeningId(request.getScreeningId())
+                .reservedSeatIds(request.getSeatIds())
+                .build();
     }
 }

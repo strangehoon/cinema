@@ -2,6 +2,7 @@ package com.example.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,4 +18,9 @@ public class Theater extends BaseEntity {
 
     @Column(length = 30)
     private String name;
+
+    @Builder
+    private Theater(String name) {
+        this.name = name;
+    }
 }

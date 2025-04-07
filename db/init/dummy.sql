@@ -51,7 +51,7 @@ FROM (
 ) t
 LIMIT 10000;
 
-
+-- SCREENINGS (50000 rows)
 INSERT INTO screenings (date, started_at, ended_at, movie_id, theater_id, created_at, created_by, updated_at, updated_by)
 SELECT
     DATE_ADD(m.released_date, INTERVAL FLOOR(RAND(m.id + s.n) * 100) DAY),
@@ -73,7 +73,6 @@ JOIN (
 ) r_gen
 LIMIT 50000;
 
-
 -- SCREENING_SEATS (100 theaters * 25 seats = 2500 rows)
 INSERT INTO screening_seats (seat_row, seat_col, theater_id, created_at, created_by, updated_at, updated_by)
 SELECT
@@ -90,10 +89,9 @@ JOIN (
 ) AS r
 ORDER BY t.id, seat_row, seat_col;
 
-
 -- USERS (100 rows)
-INSERT INTO users (created_at, created_by, updated_at, updated_by)
-SELECT NOW(), 1, NOW(), 1
+INSERT INTO users (name, created_at, created_by, updated_at, updated_by)
+SELECT CONCAT('user_', num), NOW(), 1, NOW(), 1
 FROM (
     SELECT a.N + b.N * 10 + 1 AS num
     FROM (
@@ -107,3 +105,17 @@ FROM (
     ORDER BY num
     LIMIT 100
 ) AS numbers;
+
+-- RESERVATIONS (10 rows)
+INSERT INTO reservations (is_reserved, screening_seat_id, screening_id, user_id)
+VALUES
+    (false, 1, 1, null),
+    (false, 2, 1, null),
+    (false, 3, 1, null),
+    (false, 4, 1, null),
+    (false, 5, 1, null),
+    (false, 6, 1, null),
+    (false, 7, 1, null),
+    (false, 8, 1, null),
+    (false, 9, 1, null),
+    (false, 10, 1, null);
