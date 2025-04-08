@@ -93,7 +93,8 @@ public class ReservationConcurrencyTest {
                     reservationService.reserveSeats(request);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    System.out.println("예외 발생: " + e.getClass() + " / " + e.getMessage());
+                    e.printStackTrace(); // 추가
                 } finally {
                     latch.countDown();
                 }

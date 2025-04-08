@@ -27,7 +27,7 @@ public class ReservationService {
         User user = userRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
 
-        reservationLockHandler.handle(request, user);
+        reservationLockHandler.handleWithTemplateLock(request, user);
 
         eventPublisher.publishEvent(ReservationCompletedEvent.of(user.getName(), request.getSeatIds().size()));
 
