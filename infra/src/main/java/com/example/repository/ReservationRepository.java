@@ -12,7 +12,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     int countByUserIdAndScreeningId(Long userId, Long screeningId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.OPTIMISTIC)
     @Query("SELECT r FROM Reservation r WHERE r.screening.id = :screeningId AND r.screeningSeat.id IN :seatIds")
     List<Reservation> findByScreeningIdAndScreeningSeatIdInWithLock(@Param("screeningId") Long screeningId, @Param("seatIds") List<Long> seatIds);
 }

@@ -16,6 +16,9 @@ public class Reservation extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     private boolean isReserved = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
