@@ -56,6 +56,7 @@ CREATE TABLE screening_seats (
 
 CREATE TABLE reservations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    version BIGINT DEFAULT 0,
     screening_seat_id BIGINT NOT NULL,
     is_reserved BOOLEAN NOT NULL DEFAULT false,
     screening_id BIGINT NOT NULL,
