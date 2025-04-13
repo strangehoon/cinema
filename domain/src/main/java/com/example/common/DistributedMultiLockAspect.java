@@ -1,4 +1,4 @@
-package com.example.aop;
+package com.example.common;
 
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;

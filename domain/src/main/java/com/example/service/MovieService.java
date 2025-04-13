@@ -1,4 +1,4 @@
-package com.example;
+package com.example.service;
 
 import com.example.dto.response.MovieScreeningServiceResponse;
 import com.example.dto.response.PageResponse;
@@ -39,7 +39,7 @@ public class MovieService {
         );
 
         List<MovieScreeningServiceResponse> content = moviePage.getContent().stream()
-                .map(movie -> MovieScreeningServiceResponse.from(movie))
+                .map(MovieScreeningServiceResponse::from)
                 .toList();
 
         return PageResponse.of(content, moviePage);

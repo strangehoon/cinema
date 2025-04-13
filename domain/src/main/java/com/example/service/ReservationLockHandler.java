@@ -1,6 +1,7 @@
-package com.example;
+package com.example.service;
 
-import com.example.aop.DistributedMultiLock;
+import com.example.common.DistributedMultiLock;
+import com.example.common.LockTemplate;
 import com.example.dto.request.ReservationServiceRequest;
 import com.example.entity.Reservation;
 import com.example.entity.User;

@@ -1,6 +1,7 @@
-package com.example.presentation;
+package com.example.controller;
 
-import com.example.MovieService;
+import com.example.service.MovieService;
+import com.example.dto.response.ApiResponse;
 import com.example.dto.response.MovieScreeningResponse;
 import com.example.dto.response.MovieScreeningServiceResponse;
 import com.example.dto.response.PageResponse;
@@ -16,7 +17,7 @@ public class MovieController {
     private final MovieService movieService;
 
     @GetMapping("/movies")
-    public PageResponse<MovieScreeningResponse> getMovies(
+    public ApiResponse<PageResponse<MovieScreeningResponse>> getMovies(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String genre,
             @RequestParam(defaultValue = "0") int page,
@@ -25,6 +26,6 @@ public class MovieController {
         PageResponse<MovieScreeningServiceResponse> serviceResult =
                 movieService.getMoviesWithScreenings(title, genre, page, size);
 
-        return PageResponse.from(serviceResult, MovieScreeningResponse::from);
+        return ApiResponse.ok(PageResponse.from(serviceResult, MovieScreeningResponse::from));
     }
 }

@@ -1,4 +1,4 @@
-package com.example;
+package com.example.common;
 
 import lombok.RequiredArgsConstructor;
 import org.redisson.RedissonMultiLock;
@@ -29,7 +29,7 @@ public class LockTemplate {
                 throw new IllegalStateException("락 획득 실패: " + rawKeys);
             }
 
-            criticalSection.run();
+            criticalSection.run(); // 💡 핵심 로직 실행
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

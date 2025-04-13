@@ -1,4 +1,4 @@
-package com.example.event;
+package com.example.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;

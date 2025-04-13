@@ -1,9 +1,9 @@
-package com.example;
+package com.example.service;
 
 import com.example.dto.request.ReservationServiceRequest;
 import com.example.dto.response.ReservationServiceResponse;
 import com.example.entity.User;
-import com.example.event.ReservationCompletedEvent;
+import com.example.dto.request.ReservationCompletedEvent;
 import com.example.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -24,10 +24,10 @@ public class ReservationService {
 
         reservationValidator.validate(request);
 
-        User user = userRepository.findById(request.getMemberId())
+        User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
 
-        reservationLockHandler.handleWithTemplateLock(request, user);
+        reservationLockHandler.handleWithAspectLock(request, user);
 
         eventPublisher.publishEvent(ReservationCompletedEvent.of(user.getName(), request.getSeatIds().size()));
 
