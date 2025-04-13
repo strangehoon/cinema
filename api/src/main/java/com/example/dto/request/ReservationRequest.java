@@ -3,6 +3,7 @@ package com.example.dto.request;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import java.util.List;
 
@@ -11,7 +12,7 @@ public class ReservationRequest {
 
     @NotNull(message = "회원 ID는 필수입니다.")
     @Positive(message = "회원 ID는 양수여야 합니다.")
-    private Long memberId;
+    private Long userId;
 
     @NotNull(message = "상영 시간표 ID는 필수입니다.")
     @Positive(message = "상영 시간표 ID는 양수여야 합니다.")
@@ -23,9 +24,23 @@ public class ReservationRequest {
     @Positive(message = "좌석 ID는 양수여야 합니다.")
             Long> seatIds;
 
+    @Builder
+    private ReservationRequest(Long userId, Long screeningId, List<Long> seatIds){
+        this.userId = userId;
+        this.screeningId = screeningId;
+        this.seatIds = seatIds;
+    }
+
     public ReservationServiceRequest toServiceRequest() {
         return ReservationServiceRequest.builder()
-                .memberId(memberId)
+                .userId(userId)
+                .screeningId(screeningId)
+                .seatIds(seatIds)
+                .build();
+    }
+    public ReservationRequest of(Long userId, Long screeningId, List<Long> seatIds) {
+        return ReservationRequest.builder()
+                .userId(userId)
                 .screeningId(screeningId)
                 .seatIds(seatIds)
                 .build();

@@ -8,7 +8,7 @@ import java.util.List;
 @Builder
 public class ReservationServiceRequest {
 
-    private Long memberId;
+    private Long userId;
     private Long screeningId;
     private List<Long> seatIds;
 

@@ -47,10 +47,10 @@ public class Movie extends BaseEntity {
     private List<Screening> screenings = new ArrayList<>();
 
     @Builder
-    private Movie(String title, Rating rating, LocalDate releasedAt, String thumbnailImage, int runningTimeMin, Genre genre) {
+    private Movie(String title, Rating rating, LocalDate releasedDate, String thumbnailImage, int runningTimeMin, Genre genre) {
         this.title = title;
         this.rating = rating;
-        this.releasedDate = releasedAt;
+        this.releasedDate = releasedDate;
         this.thumbnailImage = thumbnailImage;
         this.runningTimeMin = runningTimeMin;
         this.genre = genre;
