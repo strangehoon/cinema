@@ -3,7 +3,7 @@ import { check, sleep } from 'k6';
 
 export let options = {
   vus: 30,            // 100명의 동시 사용자
-  duration: '60s',     // 짧은 시간에 집중 부하
+  duration: '30m',     // 짧은 시간에 집중 부하
 };
 
 export default function () {
