@@ -19,7 +19,7 @@ public class EmbeddedRedisConfig {
     @PostConstruct
     public void startRedis() throws IOException {
         if (!isRedisRunning()) {
-            redisServer = new RedisServer(6379);
+            redisServer = new RedisServer(port);
             redisServer.start();
         }
     }
@@ -32,7 +32,7 @@ public class EmbeddedRedisConfig {
     }
 
     private boolean isRedisRunning() {
-        try (Socket socket = new Socket("localhost", 6379)) {
+        try (Socket socket = new Socket("localhost", port)) {
             return true;
         } catch (IOException e) {
             return false;
