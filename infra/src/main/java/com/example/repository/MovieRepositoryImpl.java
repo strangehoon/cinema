@@ -26,8 +26,7 @@ public class MovieRepositoryImpl implements MovieRepositoryCustom {
                 .selectFrom(movie)
                 .where(
                         filterByTitle(title),
-                        filterByGenre(genre),
-                        movie.releasedDate.before(LocalDate.now())
+                        filterByGenre(genre)
                 )
                 .orderBy(movie.releasedDate.desc())
                 .offset(pageable.getOffset())

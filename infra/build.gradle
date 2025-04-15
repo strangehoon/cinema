@@ -5,6 +5,7 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     runtimeOnly 'com.h2database:h2'
+    testImplementation 'it.ozimov:embedded-redis:0.7.2'
 
     // domain 모듈 : 분산락에서 사용
     api 'org.redisson:redisson:3.22.0'

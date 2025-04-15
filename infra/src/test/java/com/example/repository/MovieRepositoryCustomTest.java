@@ -1,5 +1,6 @@
 package com.example.repository;
 
+import com.example.config.IntegrationRepositoryTest;
 import com.example.entity.Movie;
 import com.example.enums.Genre;
 import com.example.enums.Rating;
