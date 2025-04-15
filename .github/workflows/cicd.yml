@@ -60,7 +60,7 @@ jobs:
 
     steps:
       - name: Docker Image Pull and Container Run
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USERNAME }}
