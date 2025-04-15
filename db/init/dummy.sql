@@ -13,43 +13,76 @@ FROM (
 LIMIT 100;
 
 -- MOVIES (10000 rows)
-INSERT INTO movies (title, rating, released_date, thumbnail_image, running_time_min, genre, created_at, created_by, updated_at, updated_by)
+INSERT INTO movies (
+    title, rating, released_date, thumbnail_image, running_time_min, genre, created_at, created_by, updated_at, updated_by
+)
 SELECT
-    CONCAT('Movie_', n),
-    CASE FLOOR(RAND() * 3)
-        WHEN 0 THEN 'R_12'
-        WHEN 1 THEN 'R_15'
-        ELSE 'R_19'
-    END,
-    CAST(DATE_ADD('2010-01-01', INTERVAL FLOOR(RAND() * 5843) DAY) AS DATE),
-    CONCAT('movie_', n, '.jpg'),
-    FLOOR(RAND() * 60 + 90),
-    CASE FLOOR(RAND() * 12)
-        WHEN 0 THEN 'ACTION'
-        WHEN 1 THEN 'DRAMA'
-        WHEN 2 THEN 'SF'
-        WHEN 3 THEN 'HORROR'
-        WHEN 4 THEN 'ROMANCE'
-        WHEN 5 THEN 'COMEDY'
-        WHEN 6 THEN 'THRILLER'
-        WHEN 7 THEN 'FANTASY'
-        WHEN 8 THEN 'MYSTERY'
-        WHEN 9 THEN 'ADVENTURE'
-        WHEN 10 THEN 'CRIME'
-        ELSE 'ANIMATION'
-    END,
+    -- 첫 글자: 랜덤 알파벳 대소문자 또는 숫자 + "_" + ID + ...
+    CONCAT(
+        SUBSTRING(
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+            FLOOR(RAND() * 62) + 1,
+            1
+        ),
+        '_',
+        n,
+        '_',
+        genre,
+        '_',
+        rating,
+        '_Movie'
+    ),
+    rating,
+    released_date,
+    thumbnail_image,
+    running_time_min,
+    genre,
     NOW(), 1, NOW(), 1
 FROM (
-    SELECT @n := @n + 1 as n
-    FROM (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t1,
-         (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t2,
-         (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t3,
-         (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t4,
-         (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t5,
-         (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t6,
-         (SELECT @n := 0) tmp
-) t
+    SELECT
+        @n := @n + 1 AS n,
+        CASE FLOOR(RAND() * 3)
+            WHEN 0 THEN 'R_12'
+            WHEN 1 THEN 'R_15'
+            ELSE 'R_19'
+        END AS rating,
+        CASE FLOOR(RAND() * 12)
+            WHEN 0 THEN 'ACTION'
+            WHEN 1 THEN 'DRAMA'
+            WHEN 2 THEN 'SF'
+            WHEN 3 THEN 'HORROR'
+            WHEN 4 THEN 'ROMANCE'
+            WHEN 5 THEN 'COMEDY'
+            WHEN 6 THEN 'THRILLER'
+            WHEN 7 THEN 'FANTASY'
+            WHEN 8 THEN 'MYSTERY'
+            WHEN 9 THEN 'ADVENTURE'
+            WHEN 10 THEN 'CRIME'
+            ELSE 'ANIMATION'
+        END AS genre,
+        CAST(DATE_ADD('2010-01-01', INTERVAL FLOOR(RAND() * 5843) DAY) AS DATE) AS released_date,
+        FLOOR(RAND() * 60 + 90) AS running_time_min,
+        CONCAT('movie_', @n, '.jpg') AS thumbnail_image
+    FROM (
+        SELECT 1 FROM
+            (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+             UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t1,
+            (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+             UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t2,
+            (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+             UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t3,
+            (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+             UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t4,
+            (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+             UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t5,
+            (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+             UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) t6,
+            (SELECT @n := 0) tmp
+    ) base
+) final
 LIMIT 10000;
+
+
 
 -- SCREENINGS (50000 rows)
 INSERT INTO screenings (date, started_at, ended_at, movie_id, theater_id, created_at, created_by, updated_at, updated_by)
