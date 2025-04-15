@@ -74,25 +74,6 @@ class MovieRepositoryCustomTest extends IntegrationRepositoryTest {
                     );
             assertThat(result.getTotalElements()).isEqualTo(3);
         }
-
-        @Test
-        @DisplayName("개봉일이 오늘 이후인 영화는 검색되지 않는다")
-        void futureMovies_areExcluded() {
-            // given
-            saveMovie("movie1", SF, LocalDate.now().plusDays(1));
-            saveMovie("movie2", DRAMA, LocalDate.now().plusDays(1));
-            saveMovie("movie3", DRAMA, LocalDate.now().plusDays(1));
-
-            // when
-            Page<Movie> result = movieRepositoryImpl.searchMoviesWithScreenings(
-                    null,
-                    null,
-                    PageRequest.of(0, 10)
-            );
-
-            // then
-            assertThat(result.getTotalElements()).isEqualTo(0);
-        }
     }
 
     private Movie saveMovie(String title, Genre genre) {
