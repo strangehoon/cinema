@@ -43,7 +43,7 @@ public class Movie extends BaseEntity {
     private Genre genre;
 
     @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY)
-    @BatchSize(size = 100)
+    //@BatchSize(size = 100)
     private List<Screening> screenings = new ArrayList<>();
 
     @Builder
