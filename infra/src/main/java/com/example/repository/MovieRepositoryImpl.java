@@ -39,8 +39,7 @@ public class MovieRepositoryImpl implements MovieRepositoryCustom {
                 .from(movie)
                 .where(
                         filterByTitle(title),
-                        filterByGenre(genre),
-                        movie.releasedDate.before(LocalDate.now())
+                        filterByGenre(genre)
                 )
                 .fetchOne();
         return new PageImpl<>(movies, pageable, total);

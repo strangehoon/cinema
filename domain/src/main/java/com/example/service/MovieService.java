@@ -20,13 +20,13 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
 
-    @Cacheable(
-            value = "movies",
-            key = "#genre != null ? #genre + '_page_' + #page : 'all_page_' + #page",
-            condition = "(#genre != null and #title == null and #page >= 0 and #page < 2) " +
-                    "|| (#genre == null and #title == null and #page >= 0 and #page < 2)",
-            cacheManager = "contentCacheManager"
-    )
+//    @Cacheable(
+//            value = "movies",
+//            key = "#genre != null ? #genre + '_page_' + #page : 'all_page_' + #page",
+//            condition = "(#genre != null and #title == null and #page >= 0 and #page < 2) " +
+//                    "|| (#genre == null and #title == null and #page >= 0 and #page < 2)",
+//            cacheManager = "contentCacheManager"
+//    )
     @Transactional(readOnly = true)
     public PageResponse<MovieScreeningServiceResponse> getMoviesWithScreenings(String title, String genre, int page, int size) {
 
