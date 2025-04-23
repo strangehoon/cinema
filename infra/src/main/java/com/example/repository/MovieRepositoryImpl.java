@@ -20,35 +20,9 @@ public class MovieRepositoryImpl implements MovieRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
-//    @Override
-//    public Page<Movie> searchMoviesWithScreenings(String title, Genre genre, Pageable pageable) {
-//
-//        List<Movie> movies = jpaQueryFactory
-//                .selectFrom(movie)
-//                .where(
-//                        filterByTitle(title),
-//                        filterByGenre(genre)
-//                )
-//                .orderBy(movie.releasedDate.desc())
-//                .offset(pageable.getOffset())
-//                .limit(pageable.getPageSize())
-//                .fetch();
-//
-//        // 페이징을 위한 전체 개수 조회
-//        long total = jpaQueryFactory
-//                .select(movie.count())
-//                .from(movie)
-//                .where(
-//                        filterByTitle(title),
-//                        filterByGenre(genre)
-//                )
-//                .fetchOne();
-//        return new PageImpl<>(movies, pageable, total);
-//    }
     @Override
     public Page<Movie> searchMoviesWithScreenings(String title, Genre genre, Pageable pageable) {
 
-        // 1단계: Movie ID만 조회 ()
         List<Long> movieIds = jpaQueryFactory
                 .select(movie.id)
                 .from(movie)
@@ -65,7 +39,6 @@ public class MovieRepositoryImpl implements MovieRepositoryCustom {
             return new PageImpl<>(List.of(), pageable, 0);
         }
 
-        // 2단계: Movie + Screening + Theater fetch join으로 조회
         List<Movie> movies = jpaQueryFactory
                 .selectFrom(movie)
                 .leftJoin(movie.screenings, screening).fetchJoin()
@@ -74,7 +47,6 @@ public class MovieRepositoryImpl implements MovieRepositoryCustom {
                 .distinct()
                 .fetch();
 
-        // 페이징을 위한 전체 개수 조회
         long total = jpaQueryFactory
                 .select(movie.count())
                 .from(movie)
@@ -85,7 +57,6 @@ public class MovieRepositoryImpl implements MovieRepositoryCustom {
                 .fetchOne();
         return new PageImpl<>(movies, pageable, total);
     }
-
 
     private BooleanExpression filterByTitle(String title) {
         return (title != null && !title.isBlank()) ? movie.title.startsWith(title) : null;

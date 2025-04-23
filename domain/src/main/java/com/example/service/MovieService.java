@@ -39,6 +39,7 @@ public class MovieService {
         );
 
         List<MovieScreeningServiceResponse> content = moviePage.getContent().stream()
+                .sorted(Comparator.comparing(Movie::getReleasedDate).reversed())
                 .map(MovieScreeningServiceResponse::from)
                 .toList();
 
