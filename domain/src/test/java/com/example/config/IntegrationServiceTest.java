@@ -1,9 +1,9 @@
 package com.example.config;
 
 import com.example.repository.*;
-import com.example.service.MovieService;
-import com.example.service.ReservationService;
-import com.example.service.ReservationValidator;
+import com.example.movie.service.MovieService;
+import com.example.reservation.service.ReservationService;
+import com.example.reservation.service.ReservationValidator;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;

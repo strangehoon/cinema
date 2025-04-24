@@ -1,9 +1,9 @@
 package com.example.config;
 
-import com.example.service.MovieService;
-import com.example.service.ReservationService;
-import com.example.controller.MovieController;
-import com.example.controller.ReservationController;
+import com.example.movie.service.MovieService;
+import com.example.reservation.service.ReservationService;
+import com.example.movie.controller.MovieController;
+import com.example.reservation.controller.ReservationController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

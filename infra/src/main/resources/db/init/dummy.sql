@@ -140,15 +140,15 @@ FROM (
 ) AS numbers;
 
 -- RESERVATIONS (10 rows)
-INSERT INTO reservations (is_reserved, screening_seat_id, screening_id, user_id)
+INSERT INTO reservations (is_reserved, screening_seat_id, screening_id, user_id, version)
 VALUES
-    (false, 1, 1, null),
-    (false, 2, 1, null),
-    (false, 3, 1, null),
-    (false, 4, 1, null),
-    (false, 5, 1, null),
-    (false, 6, 1, null),
-    (false, 7, 1, null),
-    (false, 8, 1, null),
-    (false, 9, 1, null),
-    (false, 10, 1, null);
+    (false, 1, 1, null, 0),
+    (false, 2, 1, null, 0),
+    (false, 3, 1, null, 0),
+    (false, 4, 1, null, 0),
+    (false, 5, 1, null, 0),
+    (false, 6, 1, null, 0),
+    (false, 7, 1, null, 0),
+    (false, 8, 1, null, 0),
+    (false, 9, 1, null, 0),
+    (false, 10, 1, null, 0);
