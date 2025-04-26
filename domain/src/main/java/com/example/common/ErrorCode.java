@@ -1,6 +1,6 @@
 package com.example.common;
 
-public interface ExceptionType {
+public interface ErrorCode {
     String getCode();
     String getMessage();
 }

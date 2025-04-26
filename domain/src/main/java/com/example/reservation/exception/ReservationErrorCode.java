@@ -1,12 +1,12 @@
 package com.example.reservation.exception;
 
-import com.example.common.ExceptionType;
+import com.example.common.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ReservationErrorCode implements ExceptionType {
+public enum ReservationErrorCode implements ErrorCode {
 
     MAX_SEAT_LIMIT_EXCEEDED("400_1", "1인당 최대 5좌석까지만 예매할 수 있습니다."),
     INVALID_SEAT("400_2",  "유효하지 않은 좌석이 포함되어 있습니다."),
