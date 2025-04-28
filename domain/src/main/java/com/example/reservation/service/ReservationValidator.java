@@ -1,9 +1,9 @@
 package com.example.reservation.service;
 
 import com.example.reservation.dto.request.ReservationServiceRequest;
-import com.example.entity.ScreeningSeat;
-import com.example.repository.ReservationRepository;
-import com.example.repository.ScreeningSeatRepository;
+import com.example.db.entity.ScreeningSeat;
+import com.example.db.repository.ReservationRepository;
+import com.example.db.repository.ScreeningSeatRepository;
 import com.example.reservation.exception.ReservationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

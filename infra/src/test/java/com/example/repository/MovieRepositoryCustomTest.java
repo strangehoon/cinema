@@ -1,9 +1,9 @@
 package com.example.repository;
 
 import com.example.config.IntegrationRepositoryTest;
-import com.example.entity.Movie;
-import com.example.enums.Genre;
-import com.example.enums.Rating;
+import com.example.db.entity.Movie;
+import com.example.db.enums.Genre;
+import com.example.db.enums.Rating;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,8 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
-import static com.example.enums.Genre.DRAMA;
-import static com.example.enums.Genre.SF;
+import static com.example.db.enums.Genre.DRAMA;
+import static com.example.db.enums.Genre.SF;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 

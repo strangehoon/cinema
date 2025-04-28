@@ -1,0 +1,31 @@
+<!-- templates/reservation.html -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>영화 좌석 예매</title>
+</head>
+<body>
+<h1>영화 좌석 예매</h1>
+
+<form th:action="@{/reservations}" method="post">
+    <!-- userId -->
+    <input type="hidden" name="userId" value="1"/>
+
+    <!-- screeningId -->
+    <input type="hidden" name="screeningId" value="1"/>
+
+    <!-- seatIds -->
+    <div>
+        <label>좌석 선택:</label><br/>
+        <input type="checkbox" name="seatIds" value="1" checked/> 좌석 1<br/>
+        <input type="checkbox" name="seatIds" value="2" checked/> 좌석 2<br/>
+        <input type="checkbox" name="seatIds" value="3" checked/> 좌석 3<br/>
+    </div>
+
+    <br/>
+    <button type="submit">예매하기</button>
+</form>
+</body>
+</html>

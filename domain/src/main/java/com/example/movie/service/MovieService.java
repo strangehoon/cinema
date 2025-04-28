@@ -2,9 +2,9 @@ package com.example.movie.service;
 
 import com.example.movie.dto.response.MovieScreeningServiceResponse;
 import com.example.common.PageResponse;
-import com.example.entity.Movie;
-import com.example.enums.Genre;
-import com.example.repository.MovieRepository;
+import com.example.db.entity.Movie;
+import com.example.db.enums.Genre;
+import com.example.db.repository.MovieRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
