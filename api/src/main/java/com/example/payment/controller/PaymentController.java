@@ -1,20 +1,33 @@
 package com.example.payment.controller;
 
-import com.example.common.ApiResponse;
 import com.example.payment.dto.request.TossPaymentConfirmRequest;
 import com.example.payment.dto.response.TossPaymentConfirmResponse;
+import com.example.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@Controller
 @RequiredArgsConstructor
-@RequestMapping("/toss")
 public class PaymentController {
 
+    private final PaymentService paymentService;
     private final PaymentClient paymentClient;
 
-    @PostMapping("/confirm")
-    public TossPaymentConfirmResponse confirm(@RequestBody TossPaymentConfirmRequest confirmRequest){
-        return paymentClient.confirmPayment(confirmRequest);
+    @PostMapping("/toss/confirm")
+    public String confirm(@RequestBody TossPaymentConfirmRequest confirmRequest){
+        TossPaymentConfirmResponse response = paymentClient.confirmPayment(confirmRequest);
+        paymentService.completePayment(response.toServiceRequest());
+        return "reservation";
+    }
+
+    @GetMapping("/success")
+    public String successPage() {
+        return "success";
+    }
+
+    @GetMapping("/fail")
+    public String failPage() {
+        return "fail";
     }
 }
