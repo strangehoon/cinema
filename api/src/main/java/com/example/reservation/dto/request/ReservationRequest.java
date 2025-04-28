@@ -8,6 +8,7 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
+@Builder
 public class ReservationRequest {
 
     @NotNull(message = "회원 ID는 필수입니다.")
@@ -23,13 +24,6 @@ public class ReservationRequest {
     private List<@NotNull(message = "좌석 ID는 null일 수 없습니다.")
     @Positive(message = "좌석 ID는 양수여야 합니다.")
             Long> seatIds;
-
-    @Builder
-    private ReservationRequest(Long userId, Long screeningId, List<Long> seatIds){
-        this.userId = userId;
-        this.screeningId = screeningId;
-        this.seatIds = seatIds;
-    }
 
     public ReservationServiceRequest toServiceRequest() {
         return ReservationServiceRequest.builder()

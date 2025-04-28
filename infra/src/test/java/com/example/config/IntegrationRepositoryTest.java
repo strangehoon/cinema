@@ -1,6 +1,6 @@
 package com.example.config;
 
-import com.example.repository.*;
+import com.example.db.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;

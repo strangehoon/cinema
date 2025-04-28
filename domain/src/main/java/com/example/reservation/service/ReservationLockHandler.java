@@ -1,11 +1,12 @@
 package com.example.reservation.service;
 
 import com.example.annotation.DistributedMultiLock;
-import com.example.config.redis.lock.LockTemplate;
+import com.example.redis.lock.LockTemplate;
+import com.example.db.enums.ReservationStatus;
 import com.example.reservation.dto.request.ReservationServiceRequest;
-import com.example.entity.Reservation;
-import com.example.entity.User;
-import com.example.repository.ReservationRepository;
+import com.example.db.entity.Reservation;
+import com.example.db.entity.User;
+import com.example.db.repository.ReservationRepository;
 import com.example.reservation.exception.ReservationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ public class ReservationLockHandler {
             throw new ReservationException(RESERVATION_DATA_INCOMPLETE);
         }
 
-        if (reservationsToUpdate.stream().anyMatch(Reservation::isReserved)) {
+        if (reservationsToUpdate.stream().anyMatch(reservation -> reservation.getStatus() != ReservationStatus.NONE)) {
             throw new ReservationException(ALREADY_RESERVED_SEAT);
         }
 
@@ -47,7 +48,7 @@ public class ReservationLockHandler {
                 throw new ReservationException(RESERVATION_DATA_INCOMPLETE);
             }
 
-            if (reservationsToUpdate.stream().anyMatch(Reservation::isReserved)) {
+            if (reservationsToUpdate.stream().anyMatch(reservation -> reservation.getStatus() != ReservationStatus.NONE)) {
                 throw new ReservationException(ALREADY_RESERVED_SEAT);
             }
 

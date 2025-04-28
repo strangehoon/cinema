@@ -1,6 +1,6 @@
 package com.example.config;
 
-import com.example.repository.*;
+import com.example.db.repository.*;
 import com.example.movie.service.MovieService;
 import com.example.reservation.service.ReservationService;
 import com.example.reservation.service.ReservationValidator;

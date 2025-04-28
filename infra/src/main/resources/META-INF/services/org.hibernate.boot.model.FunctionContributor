@@ -1,1 +1,1 @@
-com.example.config.mysql.MySQLCustomDialect
+com.example.db.config.mysql.MySQLCustomDialect

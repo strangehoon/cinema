@@ -1,6 +1,6 @@
 package com.example.movie.dto.response;
 
-import com.example.entity.Screening;
+import com.example.db.entity.Screening;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

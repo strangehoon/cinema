@@ -1,9 +1,9 @@
 package com.example.repository;
 
 import com.example.config.IntegrationRepositoryTest;
-import com.example.entity.*;
-import com.example.enums.Genre;
-import com.example.enums.Rating;
+import com.example.db.entity.*;
+import com.example.db.enums.Genre;
+import com.example.db.enums.Rating;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

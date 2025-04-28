@@ -2,20 +2,19 @@ package com.example.reservation.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import java.util.List;
 
 @Getter
 @Builder
 public class ReservationResponse {
-    private final Long userId;
-    private final Long screeningId;
-    private final List<Long> reservedSeatIds;
+    private String orderId;
+    private String orderName;
+    Long totalAmount;
 
     public static ReservationResponse from(ReservationServiceResponse serviceDto){
         return ReservationResponse.builder()
-                .userId(serviceDto.getUserId())
-                .screeningId(serviceDto.getScreeningId())
-                .reservedSeatIds(serviceDto.getReservedSeatIds())
+                .orderId(serviceDto.getOrderId())
+                .orderName(serviceDto.getOrderName())
+                .totalAmount(serviceDto.getTotalAmount())
                 .build();
     }
 }
