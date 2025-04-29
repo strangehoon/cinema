@@ -40,12 +40,14 @@ subprojects {
 	}
 
 	repositories {
-		mavenCentral()  // 의존성 관리
+		mavenCentral()
 	}
 
 	dependencies {
 		implementation 'org.springframework.boot:spring-boot-starter'
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
+		implementation 'org.springframework.boot:spring-boot-starter-actuator'
+		implementation 'io.micrometer:micrometer-registry-prometheus'
 		testRuntimeOnly 'com.h2database:h2'
 		compileOnly 'org.projectlombok:lombok'
 		annotationProcessor 'org.projectlombok:lombok'
