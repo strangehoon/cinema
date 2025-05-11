@@ -24,7 +24,7 @@ public class ReservationValidator {
         int alreadyReservedCount = reservationRepository.countByUserIdAndScreeningId(request.getUserId(), request.getScreeningId());
         int requestedCount = request.getSeatIds().size();
 
-        if (alreadyReservedCount + requestedCount > 5) {
+        if (alreadyReservedCount + requestedCount > 3) {
             throw new ReservationException(MAX_SEAT_LIMIT_EXCEEDED);
         }
 

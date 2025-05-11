@@ -35,18 +35,18 @@ public class ReservationService {
 
         reservationLockHandler.handleWithAspectLock(request, user);
 
-        List<Reservation> reservations = reservationRepository
-                .findByScreeningIdAndScreeningSeatIdInWithLock(request.getScreeningId(), request.getSeatIds());
+        List<Reservation> reservationsToUpdate = reservationRepository
+                .findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds());
 
         Screening screening = screeningRepository.findById(request.getScreeningId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상영 정보입니다."));
 
         String orderId = UUID.randomUUID().toString();
-        String orderName = screening.getMovie().getTitle() + " " + reservations.size() + "매";
-        Long totalAmount = reservations.stream().mapToLong(Reservation::getPrice).sum();
+        String orderName = screening.getMovie().getTitle() + " " + reservationsToUpdate.size() + "매";
+        Long totalAmount = reservationsToUpdate.stream().mapToLong(Reservation::getPrice).sum();
 
         Payment payment = paymentRepository.save(Payment.of(orderId, orderName, totalAmount, PaymentStatus.READY, user));
-        reservations.forEach(reservation -> reservation.putPayment(payment));
+        reservationsToUpdate.forEach(reservation -> reservation.putPayment(payment));
 
         return ReservationServiceResponse.from(payment);
     }

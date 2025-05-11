@@ -1,7 +1,9 @@
-package com.example.redis.lock;
+package com.example.lock;
 
 import com.example.annotation.DistributedMultiLock;
+import com.example.reservation.service.AopForTransaction;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -22,11 +24,13 @@ import java.util.List;
 @Aspect
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DistributedMultiLockAspect {
 
     private final RedissonClient redissonClient;
     private final ExpressionParser parser = new SpelExpressionParser();
     private final ParameterNameDiscoverer nameDiscoverer = new DefaultParameterNameDiscoverer();
+    private final AopForTransaction aopForTransaction;
 
     @Around("@annotation(distributedMultiLock)")
     public Object lock(ProceedingJoinPoint joinPoint, DistributedMultiLock distributedMultiLock) throws Throwable {
@@ -45,16 +49,19 @@ public class DistributedMultiLockAspect {
             throw new IllegalStateException("좌석 락 획득 실패: " + keys);
         }
 
-        System.out.println("스레드: " + Thread.currentThread().getName() + ", 락 키: " + keys);
+        log.info("스레드: {}, 락 키: {}", Thread.currentThread().getName(), keys);
 
         try {
-            return joinPoint.proceed();
-        } finally {
+            return aopForTransaction.proceed(joinPoint);
+        } catch (Exception e){
+            throw e;
+        }
+        finally {
             try {
                 multiLock.unlock();
             } catch (Exception e) {
-                System.err.println("락 해제 중 예외 발생: " + e.getMessage());
-                e.printStackTrace();
+                log.error("락 해제 중 예외 발생", e);
+
             }
         }
     }
