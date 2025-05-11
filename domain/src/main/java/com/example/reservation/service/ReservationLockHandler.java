@@ -1,7 +1,7 @@
 package com.example.reservation.service;
 
 import com.example.annotation.DistributedMultiLock;
-import com.example.redis.lock.LockTemplate;
+import com.example.lock.LockTemplate;
 import com.example.db.enums.ReservationStatus;
 import com.example.reservation.dto.request.ReservationServiceRequest;
 import com.example.db.entity.Reservation;
@@ -24,7 +24,7 @@ public class ReservationLockHandler {
     @DistributedMultiLock(expression = "#request.toLockKeys()")
     public void handleWithAspectLock(ReservationServiceRequest request, User user) {
         List<Reservation> reservationsToUpdate = reservationRepository
-                .findByScreeningIdAndScreeningSeatIdInWithLock(request.getScreeningId(), request.getSeatIds());
+                .findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds());
 
         if (reservationsToUpdate.size() != request.getSeatIds().size()) {
             throw new ReservationException(RESERVATION_DATA_INCOMPLETE);
@@ -42,7 +42,7 @@ public class ReservationLockHandler {
 
         lockTemplate.executeMultiLock(lockKeys, () -> {
             List<Reservation> reservationsToUpdate = reservationRepository
-                    .findByScreeningIdAndScreeningSeatIdInWithLock(request.getScreeningId(), request.getSeatIds());
+                    .findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds());
 
             if (reservationsToUpdate.size() != request.getSeatIds().size()) {
                 throw new ReservationException(RESERVATION_DATA_INCOMPLETE);

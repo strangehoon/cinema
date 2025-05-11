@@ -18,9 +18,6 @@ public class Reservation extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Version
-    private Long version;
-
     @Column(length = 20)
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
@@ -45,10 +42,13 @@ public class Reservation extends BaseEntity {
     private User user;
 
     @Builder
-    private Reservation(ReservationStatus status,ScreeningSeat screeningSeat, Screening screening, User user) {
+    private Reservation(ReservationStatus status,int price, ScreeningSeat screeningSeat, Screening screening, Payment payment, User user) {
         this.status = status;
+        this.price = price;
         this.screeningSeat = screeningSeat;
         this.screening = screening;
+        this.payment = payment;
+        this.user = user;
 
     }
 

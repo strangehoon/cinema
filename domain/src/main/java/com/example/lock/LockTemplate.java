@@ -1,6 +1,7 @@
-package com.example.redis.lock;
+package com.example.lock;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.RedissonMultiLock;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -10,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class LockTemplate {
 
     private final RedissonClient redissonClient;
@@ -39,7 +41,7 @@ public class LockTemplate {
                 try {
                     multiLock.unlock();
                 } catch (Exception e) {
-                    System.err.println("락 해제 중 예외 발생: " + e.getMessage());
+                    log.error("락 해제 중 예외 발생", e);
                 }
             }
         }

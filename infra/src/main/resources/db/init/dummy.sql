@@ -140,14 +140,26 @@ FROM (
 ) AS numbers;
 
 -- RESERVATIONS (10 rows)
-INSERT INTO reservations (status, price, screening_seat_id, screening_id, user_id, payment_id, version)
-VALUES ('NONE', 10000, 1, 1, null, null, 0),
-       ('NONE', 10000, 2, 1, null, null, 0),
-       ('NONE', 10000, 3, 1, null, null, 0),
-       ('NONE', 10000, 4, 1, null, null, 0),
-       ('NONE', 10000, 5, 1, null, null, 0),
-       ('NONE', 10000, 6, 1, null, null, 0),
-       ('NONE', 10000, 7, 1, null, null, 0),
-       ('NONE', 10000, 8, 1, null, null, 0),
-       ('NONE', 10000, 9, 1, null, null, 0),
-       ('NONE', 10000, 10, 1, null, null, 0);
+--INSERT INTO reservations (status, price, screening_seat_id, screening_id, user_id, payment_id, version)
+--VALUES ('NONE', 10000, 1, 1, null, null, 0),
+--       ('NONE', 10000, 2, 1, null, null, 0),
+--       ('NONE', 10000, 3, 1, null, null, 0),
+--       ('NONE', 10000, 4, 1, null, null, 0),
+--       ('NONE', 10000, 5, 1, null, null, 0),
+--       ('NONE', 10000, 6, 1, null, null, 0),
+--       ('NONE', 10000, 7, 1, null, null, 0),
+--       ('NONE', 10000, 8, 1, null, null, 0),
+--       ('NONE', 10000, 9, 1, null, null, 0),
+--       ('NONE', 10000, 10, 1, null, null, 0);
+
+INSERT INTO reservations (status, price, screening_seat_id, screening_id, user_id, payment_id)
+VALUES ('NONE', 10000, 1, 1, null, null),
+       ('NONE', 10000, 2, 1, null, null),
+       ('NONE', 10000, 3, 1, null, null),
+       ('NONE', 10000, 4, 1, null, null),
+       ('NONE', 10000, 5, 1, null, null),
+       ('NONE', 10000, 6, 1, null, null),
+       ('NONE', 10000, 7, 1, null, null),
+       ('NONE', 10000, 8, 1, null, null),
+       ('NONE', 10000, 9, 1, null, null),
+       ('NONE', 10000, 10, 1, null, null);
