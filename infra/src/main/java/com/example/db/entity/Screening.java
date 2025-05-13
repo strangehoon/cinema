@@ -43,4 +43,15 @@ public class Screening extends BaseEntity {
         this.movie = movie;
         this.theater = theater;
     }
+
+    public static Screening of(LocalDate date, LocalDateTime startedAt, LocalDateTime endedAt, Movie movie, Theater theater){
+
+        return Screening.builder()
+                .date(date)
+                .startedAt(startedAt)
+                .endedAt(endedAt)
+                .movie(movie)
+                .theater(theater)
+                .build();
+    }
 }
