@@ -33,7 +33,7 @@ public class PerCacheService<T> {
 
         if(cachedObject == null || delta == null || ttl == null || -1 * delta * BETA * Math.log(Math.random())>=ttl){
             if(delta!=null)
-                System.out.println(delta*BETA*Math.log(Math.random())+"::::::::::::::"+ttl);
+                System.out.println(delta+"::::::::::::::"+ttl);
             long start = System.currentTimeMillis();
             T recomputed = recompute.get();
             long recomputationTime = System.currentTimeMillis() - start;
