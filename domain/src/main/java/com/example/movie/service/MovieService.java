@@ -1,5 +1,6 @@
 package com.example.movie.service;
 
+import com.example.common.PERCacheable;
 import com.example.db.entity.Screening;
 import com.example.db.entity.Theater;
 import com.example.db.repository.TheaterRepository;
@@ -17,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import java.util.*;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -75,12 +75,11 @@ public class MovieService {
         return movie.getId();
     }
 
-    @Cacheable(
-            value = "movies",
+    @PERCacheable(
             key = "#genre != null ? #genre + '_page_' + #page : 'all_page_' + #page",
             condition = "(#genre != null and #title == null and #page >= 0 and #page < 2) " +
                     "|| (#genre == null and #title == null and #page >= 0 and #page < 2)",
-            cacheManager = "contentCacheManager"
+            ttl = 300
     )
     @Transactional(readOnly = true)
     public PageResponse<MovieScreeningServiceResponse> getMoviesWithScreenings(String title, String genre, int page, int size) {

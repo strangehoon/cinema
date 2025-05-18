@@ -1,5 +1,6 @@
 package com.example.config;
 
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ public class JacksonConfig {
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder
-                .serializers(new LocalDateTimeSerializer(FORMATTER));
+                .serializers(new LocalDateTimeSerializer(FORMATTER))
+                .deserializers(new LocalDateTimeDeserializer(FORMATTER));
     }
 }
