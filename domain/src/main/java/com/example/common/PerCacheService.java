@@ -27,11 +27,11 @@ public class PerCacheService<T> {
         List<Object> result = redisTemplate.execute(getScript, List.of(key, deltaKey));
         Object deltaObject = result.get(1);
 
-        String cachedJson =  String.valueOf(result.get(0));
+        Object cachedObject = result.get(0);
         Long delta = deltaObject==null ? null : Long.parseLong(deltaObject.toString());
         Long ttl = ((Number) result.get(2)).longValue();
 
-        if(cachedJson == null || delta == null || ttl == null || -1 * delta * BETA * Math.log(Math.random())>=ttl){
+        if(cachedObject == null || delta == null || ttl == null || -1 * delta * BETA * Math.log(Math.random())>=ttl){
             long start = System.currentTimeMillis();
             T recomputed = recompute.get();
             long recomputationTime = System.currentTimeMillis() - start;
@@ -42,6 +42,6 @@ public class PerCacheService<T> {
             redisTemplate.execute(setScript, keys, json, deltaString, ttlString);
             return recomputed;
         }
-        return objectMapper.readValue(cachedJson, typeRef);
+        return objectMapper.readValue(cachedObject.toString(), typeRef);
     }
 }
