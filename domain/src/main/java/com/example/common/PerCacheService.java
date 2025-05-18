@@ -20,7 +20,7 @@ public class PerCacheService<T> {
     private final DefaultRedisScript<List> getScript;
     private final DefaultRedisScript<Long> setScript;
     private final ObjectMapper objectMapper;
-    private static final double BETA = 0.1;
+    private static final double BETA = 1;
 
     public T get(String key, Supplier<T> recompute, TypeReference<T> typeRef, int ttlMillis) throws JsonProcessingException {
         String deltaKey = key + ":delta";
