@@ -50,29 +50,37 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./Dockerfile
+          file: ./deploy/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
+deploy:
+  needs: build
+  runs-on: ubuntu-latest
 
-    steps:
-      - name: Docker Image Pull and Container Run
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DEPLOYMENT_HOST }}
-          username: ${{ secrets.DEPLOYMENT_USERNAME }}
-          key: ${{ secrets.DEPLOYMENT_KEY }}
-          port: ${{ secrets.DEPLOYMENT_PORT }}
-          script: |
-            docker stop my-was
-            docker rm my-was
-            docker image rm ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}
-            docker run -d -p 8080:8080 \
-            -v /root/my-proj/resources:/app/resources \
-            --name my-was ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}
-            
-            
-            
+  steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Upload deploy.sh to EC2
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.DEPLOYMENT_HOST }}
+        username: ${{ secrets.DEPLOYMENT_USERNAME }}
+        key: ${{ secrets.DEPLOYMENT_KEY }}
+        port: ${{ secrets.DEPLOYMENT_PORT }}
+        source: "deploy/deploy.sh"
+        target: "~/"
+
+    - name: Execute deploy.sh on EC2
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.DEPLOYMENT_HOST }}
+        username: ${{ secrets.DEPLOYMENT_USERNAME }}
+        key: ${{ secrets.DEPLOYMENT_KEY }}
+        port: ${{ secrets.DEPLOYMENT_PORT }}
+        script: |
+          echo "🎯 실행: ~/deploy.sh"
+          chmod +x ~/deploy.sh
+          IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}
+          bash ~/deploy.sh $IMAGE
