@@ -69,7 +69,7 @@ jobs:
           username: ${{ secrets.DEPLOYMENT_USERNAME }}
           key: ${{ secrets.DEPLOYMENT_KEY }}
           port: ${{ secrets.DEPLOYMENT_PORT }}
-          source: "deploy/*"              # ✅ deploy 폴더 전체 복사
+          source: "deploy/**"              # ✅ deploy 폴더 전체 복사
           target: "~/deploy"              # ✅ EC2의 ~/deploy 경로에 저장
 
       - name: Execute deploy.sh on EC2
