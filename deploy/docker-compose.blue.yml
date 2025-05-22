@@ -1,0 +1,7 @@
+version: "3.8"
+services:
+  app-blue:
+    image: YOUR_IMAGE_NAME
+    container_name: app-blue
+    ports:
+      - "8081:8080"
