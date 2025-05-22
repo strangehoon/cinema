@@ -81,6 +81,7 @@ jobs:
           port: ${{ secrets.DEPLOYMENT_PORT }}
           script: |
             echo "🎯 실행: ~/deploy/deploy.sh"
-            chmod +x ~/deploy/deploy.sh
+            cd ~/deploy
+            chmod +x deploy.sh
             IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}
-            bash ~/deploy/deploy.sh $IMAGE
+            bash ./deploy.sh $IMAGE
