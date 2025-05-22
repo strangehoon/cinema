@@ -57,10 +57,9 @@ for i in {1..60}; do
     break
   fi
   if [ $i -eq 10 ]; then
-    echo "❌ 헬스체크 실패. 새 컨테이너 중단"
-    echo "📦 실패한 컨테이너 로그 출력 ($NEXT_NAME)"
-    docker logs $NEXT_NAME || echo "⚠️ 로그를 가져올 수 없습니다."
-    docker compose -f temp-compose.yml stop
+    echo "❌ 헬스체크 실패. 새 컨테이너 중단하지 않음. 로그 확인 필요"
+    echo "📦 로그 보기: docker logs $NEXT_NAME"
+    echo "📦 상태 보기: docker ps -a"
     rm temp-compose.yml
     exit 1
   fi
