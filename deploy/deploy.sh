@@ -60,7 +60,7 @@ for i in {1..60}; do
     echo "❌ 헬스체크 실패. 새 컨테이너 중단"
     echo "📦 실패한 컨테이너 로그 출력 ($NEXT_NAME)"
     docker logs $NEXT_NAME || echo "⚠️ 로그를 가져올 수 없습니다."
-    docker compose -f temp-compose.yml down
+    docker compose -f temp-compose.yml stop
     rm temp-compose.yml
     exit 1
   fi
