@@ -7,7 +7,7 @@ if [ -z "$IMAGE" ]; then
 fi
 
 # 현재 스크립트 위치 기준 경로 설정 (절대경로 기반)
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "🚀 docker-compose 기반 배포 시작 - 이미지: $IMAGE"
 
