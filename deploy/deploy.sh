@@ -48,7 +48,7 @@ docker compose -f temp-compose.yml up -d
 echo "🟡 새 컨테이너 실행됨 → 헬스체크 시작..."
 
 # 헬스체크
-for i in {1..30}; do
+for i in {1..60}; do
   sleep 2
   STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$NEXT_PORT/actuator/health)
   echo "🔎 응답 코드: $STATUS_CODE"
@@ -58,6 +58,8 @@ for i in {1..30}; do
   fi
   if [ $i -eq 10 ]; then
     echo "❌ 헬스체크 실패. 새 컨테이너 중단"
+    echo "📦 실패한 컨테이너 로그 출력 ($NEXT_NAME)"
+    docker logs $NEXT_NAME || echo "⚠️ 로그를 가져올 수 없습니다."
     docker compose -f temp-compose.yml down
     rm temp-compose.yml
     exit 1
