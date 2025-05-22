@@ -69,8 +69,8 @@ jobs:
           username: ${{ secrets.DEPLOYMENT_USERNAME }}
           key: ${{ secrets.DEPLOYMENT_KEY }}
           port: ${{ secrets.DEPLOYMENT_PORT }}
-          source: "deploy/**"              # ✅ deploy 폴더 전체 복사
-          target: "~/deploy"              # ✅ EC2의 ~/deploy 경로에 저장
+          source: "deploy/*"          # ✅ deploy 내부 파일만 전송
+          target: "~/deploy"          # ✅ 중첩 없이 바로 배치됨
 
       - name: Execute deploy.sh on EC2
         uses: appleboy/ssh-action@v0.1.10
