@@ -56,7 +56,7 @@ for i in {1..60}; do
     echo "✅ 헬스체크 통과"
     break
   fi
-  if [ $i -eq 10 ]; then
+  if [ $i -eq 30 ]; then
     echo "❌ 헬스체크 실패. 새 컨테이너 중단하지 않음. 로그 확인 필요"
     echo "📦 로그 보기: docker logs $NEXT_NAME"
     echo "📦 상태 보기: docker ps -a"
