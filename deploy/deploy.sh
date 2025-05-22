@@ -50,7 +50,7 @@ echo "🟡 새 컨테이너 실행됨 → 헬스체크 시작..."
 # 헬스체크
 for i in {1..60}; do
   sleep 2
-  STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$NEXT_PORT/actuator/health)
+  STATUS_CODE=$(docker exec $NEXT_NAME curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)
   echo "🔎 응답 코드: $STATUS_CODE"
   if [ "$STATUS_CODE" -eq 200 ]; then
     echo "✅ 헬스체크 통과"
