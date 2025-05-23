@@ -65,9 +65,11 @@ done
 echo "✅ 헬스체크 통과"
 sleep 5 # 👈 여유를 조금 주자
 
-# Nginx 전환
+# Nginx 설정 전환
 echo "🔁 Nginx 포트 전환: $NGINX_SCRIPT"
-bash $NGINX_SCRIPT
+bash $NGINX_SCRIPT | sudo tee /etc/nginx/conf.d/app.conf > /dev/null
+sudo nginx -s reload
+echo "✅ Nginx 설정 적용 및 reload 완료"
 
 # 이전 컨테이너 제거
 docker rm -f $OLD_NAME > /dev/null 2>&1 || true
