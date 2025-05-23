@@ -72,7 +72,7 @@ sudo nginx -s reload
 echo "✅ Nginx 설정 적용 및 reload 완료"
 
 # 이전 컨테이너 제거
-docker rm -f $OLD_NAME > /dev/null 2>&1 || true
+# docker rm -f $OLD_NAME > /dev/null 2>&1 || true
 
 # 임시 파일 제거
 rm temp-compose.yml
