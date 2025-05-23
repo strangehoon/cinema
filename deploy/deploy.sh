@@ -62,6 +62,9 @@ for i in {1..60}; do
   fi
 done
 
+echo "✅ 헬스체크 통과"
+sleep 1 # 👈 여유를 조금 주자
+
 # Nginx 전환
 echo "🔁 Nginx 포트 전환: $NGINX_SCRIPT"
 bash $NGINX_SCRIPT
