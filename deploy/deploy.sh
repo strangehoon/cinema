@@ -40,9 +40,6 @@ echo "새 컨테이너: $NEXT_NAME | 이전 컨테이너: $OLD_NAME"
 cp "$COMPOSE_FILE" temp-compose.yml
 sed -i "s|YOUR_IMAGE_NAME|$IMAGE|" temp-compose.yml
 
-# 기존 컨테이너 중지 및 제거
-docker compose -f temp-compose.yml down > /dev/null 2>&1 || true
-
 # 새 컨테이너 실행
 docker compose -f temp-compose.yml up -d
 echo "🟡 새 컨테이너 실행됨 → 헬스체크 시작..."
