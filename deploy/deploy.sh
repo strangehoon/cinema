@@ -71,9 +71,8 @@ sudo nginx -s reload
 echo "✅ Nginx 설정 적용 및 reload 완료"
 
 # 이전 컨테이너 제거
-sleep 5
 echo "🛑 이전 컨테이너 종료 중 (docker stop + rm)"
-docker stop $OLD_NAME
+docker stop --time=30 $OLD_NAME
 docker rm $OLD_NAME
 
 # 임시 파일 제거
