@@ -45,7 +45,7 @@ docker compose -f temp-compose.yml up -d
 echo "🟡 새 컨테이너 실행됨 → 헬스체크 시작..."
 
 # 헬스체크
-for i in {1..60}; do
+for i in {1..90}; do
   sleep 2
   STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$NEXT_PORT/actuator/health)
   echo "🔎 응답 코드: $STATUS_CODE"
@@ -61,9 +61,6 @@ for i in {1..60}; do
     exit 1
   fi
 done
-
-echo "✅ 헬스체크 통과"
-sleep 5 # 👈 여유를 조금 주자
 
 # Nginx 설정 전환
 echo "🔁 Nginx 포트 전환: $NGINX_SCRIPT"
