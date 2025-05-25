@@ -62,9 +62,10 @@ for i in {1..90}; do
   fi
 done
 
+sleep 10
+
 # Nginx 설정 전환
 echo "🔁 Nginx 포트 전환: $NGINX_SCRIPT"
-sleep 5
 bash $NGINX_SCRIPT | sudo tee /etc/nginx/conf.d/app.conf > /dev/null
 sudo nginx -s reload
 echo "✅ Nginx 설정 적용 및 reload 완료"
