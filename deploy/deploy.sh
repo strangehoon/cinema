@@ -62,17 +62,18 @@ for i in {1..90}; do
   fi
 done
 
-sleep 10
+# sleep 10
 
 # Nginx 설정 전환
 echo "🔁 Nginx 포트 전환: $NGINX_SCRIPT"
 bash $NGINX_SCRIPT | sudo tee /etc/nginx/conf.d/app.conf > /dev/null
-sudo nginx -s reload
+sudo nginx -s restart
 echo "✅ Nginx 설정 적용 및 reload 완료"
 
 # 이전 컨테이너 제거
 echo "🛑 이전 컨테이너 종료 중 (docker stop + rm)"
-docker stop --time=30 $OLD_NAME
+docker stop $OLD_NAME
+# docker stop --time=30 $OLD_NAME
 docker rm $OLD_NAME
 
 # 임시 파일 제거
