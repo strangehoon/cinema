@@ -67,7 +67,7 @@ done
 # Nginx 설정 전환
 echo "🔁 Nginx 포트 전환: $NGINX_SCRIPT"
 bash $NGINX_SCRIPT | sudo tee /etc/nginx/conf.d/app.conf > /dev/null
-sudo nginx -s restart
+sudo systemctl restart nginx
 echo "✅ Nginx 설정 적용 및 reload 완료"
 
 # 이전 컨테이너 제거
