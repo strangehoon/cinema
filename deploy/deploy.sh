@@ -44,17 +44,29 @@ sed -i "s|YOUR_IMAGE_NAME|$IMAGE|" temp-compose.yml
 docker compose -f temp-compose.yml up -d
 echo "🟡 새 컨테이너 실행됨 → 헬스체크 시작..."
 
-# 헬스체크
-for i in {1..90}; do
-  sleep 2
-  STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$NEXT_PORT/actuator/health)
-  echo "🔎 응답 코드: $STATUS_CODE"
-  if [ "$STATUS_CODE" -eq 200 ]; then
-    echo "✅ 헬스체크 통과"
+# 헬스체크 설정
+MAX_RETRIES=45
+SLEEP_INTERVAL=2
+HEALTH_URL="http://localhost:$NEXT_PORT/actuator/health"
+
+echo "🔍 헬스체크 시작 (최대 ${MAX_RETRIES}회, ${SLEEP_INTERVAL}초 간격)"
+
+for ((i=1; i<=MAX_RETRIES; i++)); do
+  sleep $SLEEP_INTERVAL
+
+  # 응답 JSON 확인
+  RESPONSE=$(curl -s --max-time 2 "$HEALTH_URL")
+  HTTP_STATUS=$(echo "$RESPONSE" | jq -r '.status' 2>/dev/null)
+
+  echo "🔎 시도 $i → 응답 상태: $HTTP_STATUS"
+
+  if [[ "$HTTP_STATUS" == "UP" ]]; then
+    echo "✅ 헬스체크 통과: 애플리케이션이 정상입니다."
     break
   fi
-  if [ $i -eq 45 ]; then
-    echo "❌ 헬스체크 실패. 새 컨테이너 중단하지 않음. 로그 확인 필요"
+
+  if [[ $i -eq $MAX_RETRIES ]]; then
+    echo "❌ 헬스체크 실패: ${MAX_RETRIES}회 시도했으나 상태가 UP이 아닙니다."
     echo "📦 로그 보기: docker logs $NEXT_NAME"
     echo "📦 상태 보기: docker ps -a"
     rm temp-compose.yml
