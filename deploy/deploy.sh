@@ -62,7 +62,7 @@ for i in {1..90}; do
   fi
 done
 
-sleep 9
+# sleep 9
 
 # Nginx 설정 전환
 echo "🔁 Nginx 포트 전환: $NGINX_SCRIPT"
