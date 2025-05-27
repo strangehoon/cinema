@@ -74,7 +74,7 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
   fi
 done
 
-# sleep 9
+sleep 15
 
 # Nginx 설정 전환
 echo "🔁 Nginx 포트 전환: $NGINX_SCRIPT"
