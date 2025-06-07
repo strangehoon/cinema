@@ -80,7 +80,7 @@ public class MovieService {
             key = "#genre != null ? #genre + '_page_' + #page : 'all_page_' + #page",
             condition = "(#genre != null and #title == null and #page >= 0 and #page < 2) " +
                     "|| (#genre == null and #title == null and #page >= 0 and #page < 2)",
-            ttl = 300
+            ttl = 60
     )
     @Transactional(readOnly = true)
     public PageResponse<MovieScreeningServiceResponse> getMoviesWithScreenings1(String title, String genre, int page, int size) {
@@ -92,7 +92,6 @@ public class MovieService {
                 genreEnum,
                 PageRequest.of(page, size)
         );
-        System.out.println("!!");
         List<MovieScreeningServiceResponse> content = moviePage.getContent().stream()
                 .sorted(Comparator.comparing(Movie::getReleasedDate).reversed())
                 .map(MovieScreeningServiceResponse::from)
@@ -118,7 +117,6 @@ public class MovieService {
                 genreEnum,
                 PageRequest.of(page, size)
         );
-        System.out.println("!!");
         List<MovieScreeningServiceResponse> content = moviePage.getContent().stream()
                 .sorted(Comparator.comparing(Movie::getReleasedDate).reversed())
                 .map(MovieScreeningServiceResponse::from)
@@ -145,7 +143,6 @@ public class MovieService {
                 genreEnum,
                 PageRequest.of(page, size)
         );
-        System.out.println("!!");
         List<MovieScreeningServiceResponse> content = moviePage.getContent().stream()
                 .sorted(Comparator.comparing(Movie::getReleasedDate).reversed())
                 .map(MovieScreeningServiceResponse::from)
