@@ -1,17 +1,13 @@
 package com.example.movie.dto.response;
 
 import com.example.db.entity.Screening;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Builder
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 public class ScreeningServiceResponse {
 
     private Long screeningId;
