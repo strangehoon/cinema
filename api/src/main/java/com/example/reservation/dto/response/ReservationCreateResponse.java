@@ -5,13 +5,13 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ReservationResponse {
+public class ReservationCreateResponse {
     private String orderId;
     private String orderName;
     Long totalAmount;
 
-    public static ReservationResponse from(ReservationServiceResponse serviceDto){
-        return ReservationResponse.builder()
+    public static ReservationCreateResponse from(ReservationCreateServiceResponse serviceDto){
+        return ReservationCreateResponse.builder()
                 .orderId(serviceDto.getOrderId())
                 .orderName(serviceDto.getOrderName())
                 .totalAmount(serviceDto.getTotalAmount())

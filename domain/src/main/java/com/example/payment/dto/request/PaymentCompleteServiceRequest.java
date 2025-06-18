@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class CompletePaymentServiceRequest {
+public class PaymentCompleteServiceRequest {
 
     String paymentKey;
     String type;

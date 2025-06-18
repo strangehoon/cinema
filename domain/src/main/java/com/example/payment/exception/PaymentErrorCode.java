@@ -1,13 +1,13 @@
 package com.example.payment.exception;
 
-import com.example.common.ErrorCode;
+import com.example.common.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import java.util.Arrays;
 
 @Getter
 @RequiredArgsConstructor
-public enum PaymentConfirmErrorCode implements ErrorCode {
+public enum PaymentErrorCode implements ErrorCode {
 
     ALREADY_PROCESSED_PAYMENT("400_1", "이미 처리된 결제 입니다."),
     PROVIDER_ERROR("400_2", "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
@@ -40,6 +40,8 @@ public enum PaymentConfirmErrorCode implements ErrorCode {
     UNAPPROVED_ORDER_ID("400_29", "아직 승인되지 않은 주문번호입니다."),
     EXCEED_MAX_MONTHLY_PAYMENT_AMOUNT("400_30", "당월 결제 가능금액인 1,000,000원을 초과 하셨습니다."),
     AMOUNT_MISMATCH("400_31", "결제 금액이 일치하지 않습니다."),
+    ORDER_NOT_FOUND("400_32", "존재하지 않는 주문 정보입니다."),
+    PAYMENT_NOT_FOUND("400_33", "존재하지 않는 결제 정보입니다."),
     UNAUTHORIZED_KEY("401_1", "인증되지 않은 시크릿 키 혹은 클라이언트 키 입니다."),
     REJECT_ACCOUNT_PAYMENT("403_1", "잔액부족으로 결제에 실패했습니다."),
     REJECT_CARD_PAYMENT("403_2", "한도초과 혹은 잔액부족으로 결제에 실패했습니다."),
@@ -62,7 +64,7 @@ public enum PaymentConfirmErrorCode implements ErrorCode {
     private final String code;
     private final String message;
 
-    public static PaymentConfirmErrorCode findByName(String name) {
+    public static PaymentErrorCode findByName(String name) {
         return Arrays.stream(values())
                 .filter(v -> v.name().equals(name))
                 .findAny()

@@ -6,14 +6,14 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ReservationServiceResponse {
+public class ReservationCreateServiceResponse {
 
     private String orderId;
     private String orderName;
     Long totalAmount;
 
-    public static ReservationServiceResponse from(Payment payment) {
-        return ReservationServiceResponse.builder()
+    public static ReservationCreateServiceResponse from(Payment payment) {
+        return ReservationCreateServiceResponse.builder()
                 .orderId(payment.getOrderId())
                 .orderName(payment.getOrderName())
                 .totalAmount(payment.getTotalAmount())

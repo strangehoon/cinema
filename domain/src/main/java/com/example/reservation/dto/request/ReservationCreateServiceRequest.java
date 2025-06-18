@@ -6,7 +6,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class ReservationServiceRequest {
+public class ReservationCreateServiceRequest {
 
     private Long userId;
     private Long screeningId;

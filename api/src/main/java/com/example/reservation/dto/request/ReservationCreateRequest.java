@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class ReservationRequest {
+public class ReservationCreateRequest {
 
     @NotNull(message = "회원 ID는 필수입니다.")
     @Positive(message = "회원 ID는 양수여야 합니다.")
@@ -25,15 +25,8 @@ public class ReservationRequest {
     @Positive(message = "좌석 ID는 양수여야 합니다.")
             Long> seatIds;
 
-    public ReservationServiceRequest toServiceRequest() {
-        return ReservationServiceRequest.builder()
-                .userId(userId)
-                .screeningId(screeningId)
-                .seatIds(seatIds)
-                .build();
-    }
-    public ReservationRequest of(Long userId, Long screeningId, List<Long> seatIds) {
-        return ReservationRequest.builder()
+    public ReservationCreateServiceRequest toServiceRequest() {
+        return ReservationCreateServiceRequest.builder()
                 .userId(userId)
                 .screeningId(screeningId)
                 .seatIds(seatIds)

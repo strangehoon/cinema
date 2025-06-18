@@ -15,7 +15,7 @@ public class PaymentController {
     private final PaymentClient paymentClient;
 
     @PostMapping("/toss/confirm")
-    public String confirm(@RequestBody TossPaymentConfirmRequest confirmRequest){
+    public String confirmPayment(@RequestBody TossPaymentConfirmRequest confirmRequest){
         TossPaymentConfirmResponse response = paymentClient.confirmPayment(confirmRequest);
         paymentService.completePayment(response.toServiceRequest());
         return "reservation";
