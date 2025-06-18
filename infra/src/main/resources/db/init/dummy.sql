@@ -123,35 +123,23 @@ JOIN (
 ORDER BY t.id, seat_row, seat_col;
 
 -- USERS (100 rows)
---INSERT INTO users (name, created_at, created_by, updated_at, updated_by)
---SELECT CONCAT('user_', num), NOW(), 1, NOW(), 1
---FROM (
---    SELECT a.N + b.N * 10 + 1 AS num
---    FROM (
---        SELECT 0 AS N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
---        UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
---    ) a
---    CROSS JOIN (
---        SELECT 0 AS N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
---        UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
---    ) b
---    ORDER BY num
---    LIMIT 100
---) AS numbers;
+INSERT INTO users (name, created_at, created_by, updated_at, updated_by)
+SELECT CONCAT('user_', num), NOW(), 1, NOW(), 1
+FROM (
+    SELECT a.N + b.N * 10 + 1 AS num
+    FROM (
+        SELECT 0 AS N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+        UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
+    ) a
+    CROSS JOIN (
+        SELECT 0 AS N UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+        UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
+    ) b
+    ORDER BY num
+    LIMIT 100
+) AS numbers;
 
 -- RESERVATIONS (10 rows)
---INSERT INTO reservations (status, price, screening_seat_id, screening_id, user_id, payment_id, version)
---VALUES ('NONE', 10000, 1, 1, null, null, 0),
---       ('NONE', 10000, 2, 1, null, null, 0),
---       ('NONE', 10000, 3, 1, null, null, 0),
---       ('NONE', 10000, 4, 1, null, null, 0),
---       ('NONE', 10000, 5, 1, null, null, 0),
---       ('NONE', 10000, 6, 1, null, null, 0),
---       ('NONE', 10000, 7, 1, null, null, 0),
---       ('NONE', 10000, 8, 1, null, null, 0),
---       ('NONE', 10000, 9, 1, null, null, 0),
---       ('NONE', 10000, 10, 1, null, null, 0);
-
 INSERT INTO reservations (status, price, screening_seat_id, screening_id, user_id, payment_id)
 VALUES ('NONE', 10000, 1, 1, null, null),
        ('NONE', 10000, 2, 1, null, null),
