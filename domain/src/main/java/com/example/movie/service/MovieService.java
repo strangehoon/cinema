@@ -1,25 +1,28 @@
 package com.example.movie.service;
 
-import com.example.common.PERCacheable;
+import com.example.common.per.PERCacheable;
 import com.example.db.entity.Screening;
 import com.example.db.entity.Theater;
 import com.example.db.repository.TheaterRepository;
 import com.example.movie.dto.request.MovieCreateServiceRequest;
 import com.example.movie.dto.request.MovieUpdateServiceRequest;
 import com.example.movie.dto.response.MovieScreeningServiceResponse;
-import com.example.common.PageResponse;
+import com.example.common.dto.PageResponse;
 import com.example.db.entity.Movie;
 import com.example.db.enums.Genre;
 import com.example.db.repository.MovieRepository;
 import com.example.movie.dto.response.MovieCreateServiceResponse;
 import com.example.movie.dto.response.MovieUpdateServiceResponse;
+import com.example.movie.exception.MovieException;
+import com.example.theater.exception.TheaterException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import org.springframework.transaction.annotation.Transactional;
+import static com.example.movie.exception.MovieErrorCode.MOVIE_NOT_FOUND;
+import static com.example.theater.exception.TheaterErrorCode.THEATER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +39,7 @@ public class MovieService {
 
         for(MovieCreateServiceRequest.ScreeningServiceCreateRequest screeningServiceCreateRequest : movieCreateServiceRequest.getScreenings()){
             Theater theater = theaterRepository.findById(screeningServiceCreateRequest.getTheaterId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 극장 정보입니다."));
+                    .orElseThrow(() -> new TheaterException(THEATER_NOT_FOUND));
 
             Screening screening = Screening.of(screeningServiceCreateRequest.getDate(),screeningServiceCreateRequest.getStartedAt(),
                     screeningServiceCreateRequest.getEndedAt(), movie, theater);
@@ -50,7 +53,7 @@ public class MovieService {
 
     public MovieUpdateServiceResponse updateMovie(Long movieId, MovieUpdateServiceRequest movieUpdateServiceRequest){
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 영화입니다."));
+                .orElseThrow(() -> new MovieException(MOVIE_NOT_FOUND));
 
         movie.updateInfo(movieUpdateServiceRequest.getTitle(), movieUpdateServiceRequest.getRating(), movieUpdateServiceRequest.getReleasedDate(),
                 movieUpdateServiceRequest.getThumbnailImage(), movieUpdateServiceRequest.getRunningTimeMin(), movieUpdateServiceRequest.getGenre());
@@ -59,7 +62,7 @@ public class MovieService {
 
         for (MovieUpdateServiceRequest.ScreeningServiceUpdateRequest screeningServiceUpdateRequest : movieUpdateServiceRequest.getScreenings()) {
             Theater theater = theaterRepository.findById(screeningServiceUpdateRequest.getTheaterId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 극장 정보입니다."));
+                    .orElseThrow(() -> new TheaterException(THEATER_NOT_FOUND));
 
             Screening screening = Screening.of(screeningServiceUpdateRequest.getDate(),screeningServiceUpdateRequest.getStartedAt(),
                     screeningServiceUpdateRequest.getEndedAt(), movie, theater);
@@ -71,7 +74,7 @@ public class MovieService {
 
     public Long deleteMovie(Long movieId){
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 영화입니다."));
+                .orElseThrow(() -> new MovieException(MOVIE_NOT_FOUND));
         movieRepository.delete(movie);
         return movie.getId();
     }
@@ -80,61 +83,10 @@ public class MovieService {
             key = "#genre != null ? #genre + '_page_' + #page : 'all_page_' + #page",
             condition = "(#genre != null and #title == null and #page >= 0 and #page < 2) " +
                     "|| (#genre == null and #title == null and #page >= 0 and #page < 2)",
-            ttl = 60
+            ttl = 300
     )
     @Transactional(readOnly = true)
-    public PageResponse<MovieScreeningServiceResponse> getMoviesWithScreenings1(String title, String genre, int page, int size) {
-
-        Genre genreEnum = genre != null ? Genre.valueOf(genre.toUpperCase()) : null;
-
-        Page<Movie> moviePage = movieRepository.searchMoviesWithScreenings(
-                title,
-                genreEnum,
-                PageRequest.of(page, size)
-        );
-        List<MovieScreeningServiceResponse> content = moviePage.getContent().stream()
-                .sorted(Comparator.comparing(Movie::getReleasedDate).reversed())
-                .map(MovieScreeningServiceResponse::from)
-                .toList();
-
-        return PageResponse.of(content, moviePage);
-    }
-
-    @Cacheable(
-            value = "movies",
-            key = "#genre != null ? #genre + '_page_' + #page : 'all_page_' + #page",
-            condition = "(#genre != null and #title == null and #page >= 0 and #page < 2) " +
-                    "|| (#genre == null and #title == null and #page >= 0 and #page < 2)",
-            cacheManager = "contentCacheManager"
-            )
-    @Transactional(readOnly = true)
-    public PageResponse<MovieScreeningServiceResponse> getMoviesWithScreenings2(String title, String genre, int page, int size) {
-
-        Genre genreEnum = genre != null ? Genre.valueOf(genre.toUpperCase()) : null;
-
-        Page<Movie> moviePage = movieRepository.searchMoviesWithScreenings(
-                title,
-                genreEnum,
-                PageRequest.of(page, size)
-        );
-        List<MovieScreeningServiceResponse> content = moviePage.getContent().stream()
-                .sorted(Comparator.comparing(Movie::getReleasedDate).reversed())
-                .map(MovieScreeningServiceResponse::from)
-                .toList();
-
-        return PageResponse.of(content, moviePage);
-    }
-
-    @Cacheable(
-            value = "movies",
-            key = "#genre != null ? #genre + '_page_' + #page : 'all_page_' + #page",
-            condition = "(#genre != null and #title == null and #page >= 0 and #page < 2) " +
-                    "|| (#genre == null and #title == null and #page >= 0 and #page < 2)",
-            cacheManager = "contentCacheManager",
-            sync = true
-    )
-    @Transactional(readOnly = true)
-    public PageResponse<MovieScreeningServiceResponse> getMoviesWithScreenings3(String title, String genre, int page, int size) {
+    public PageResponse<MovieScreeningServiceResponse> getMoviesWithScreenings(String title, String genre, int page, int size) {
 
         Genre genreEnum = genre != null ? Genre.valueOf(genre.toUpperCase()) : null;
 
