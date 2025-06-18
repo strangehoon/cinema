@@ -5,7 +5,7 @@ import com.example.movie.dto.request.MovieCreateServiceRequest;
 import com.example.movie.dto.request.MovieUpdateServiceRequest;
 import com.example.movie.dto.response.MovieCreateServiceResponse;
 import com.example.movie.dto.response.MovieScreeningServiceResponse;
-import com.example.common.PageResponse;
+import com.example.common.dto.PageResponse;
 import com.example.movie.dto.response.MovieUpdateServiceResponse;
 import com.example.movie.dto.response.ScreeningServiceResponse;
 import com.example.db.entity.Movie;
@@ -13,6 +13,7 @@ import com.example.db.entity.Screening;
 import com.example.db.entity.Theater;
 import com.example.db.enums.Genre;
 import com.example.db.enums.Rating;
+import com.example.movie.exception.MovieException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,53 +22,21 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import static com.example.db.enums.Genre.DRAMA;
+import static com.example.movie.exception.MovieErrorCode.MOVIE_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
 @Transactional
 class MovieServiceTest extends IntegrationServiceTest {
 
-//    @Nested
-//    @DisplayName("상영중인 영화 조회")
-//    class getMoviesWithScreenings {
-//
-//        @Test
-//        @DisplayName("영화 제목과 장르로 조회하면 해당 영화와 관련된 상영 정보가 반환된다")
-//        void getMoviesWithScreenings_success() {
-//            // given
-//            Movie movie = saveMovie("movie1", DRAMA);
-//            Theater theater = saveTheater("theater1");
-//            Screening screening = saveScreening(movie, theater, LocalDate.now().plusDays(1));
-//            em.clear();
-//
-//            // when
-//            PageResponse<MovieScreeningServiceResponse> result =
-//                    movieService.getMoviesWithScreenings("movie1", "drama", 0, 10);
-//
-//            // then
-//            MovieScreeningServiceResponse response = result.getContent().get(0);
-//            assertThat(response.getTitle()).isEqualTo("movie1");
-//            assertThat(response.getGenre()).isEqualTo("DRAMA");
-//
-//            assertThat(response.getScreeningServiceResponses())
-//                    .hasSize(1)
-//                    .extracting(
-//                            ScreeningServiceResponse::getDate,
-//                            ScreeningServiceResponse::getTheaterName
-//                    )
-//                    .containsExactly(
-//                            tuple(LocalDate.now().plusDays(1), "theater1")
-//                    );
-//        }
-//    }
-
     @Nested
     @DisplayName("영화 정보 추가")
-    class createMovie {
+    class CreateMovie {
 
         @Test
         @DisplayName("정상적인 요청으로 영화 정보를 추가한다")
-        void createMovie_success() {
+        void success() {
             // given
             Theater theater = saveTheater("theater1");
 
@@ -108,11 +77,11 @@ class MovieServiceTest extends IntegrationServiceTest {
 
     @Nested
     @DisplayName("영화 정보 수정")
-    class updateMovie {
+    class UpdateMovie {
 
         @Test
         @DisplayName("정상적인 요청으로 영화 정보를 수정한다")
-        void updateMovie_success() {
+        void success() {
             // given
             Theater theater = saveTheater("theater1");
             Movie movie = saveMovie("아이언맨", Genre.valueOf("ADVENTURE"));
@@ -149,6 +118,71 @@ class MovieServiceTest extends IntegrationServiceTest {
             assertThat(response.getScreenings().get(0).getStartedAt()).isEqualTo(screeningRequest.getStartedAt());
             assertThat(response.getScreenings().get(0).getEndedAt()).isEqualTo(screeningRequest.getEndedAt());
             assertThat(response.getScreenings().get(0).getTheaterId()).isEqualTo(screeningRequest.getTheaterId());
+        }
+    }
+
+    @Nested
+    @DisplayName("영화 정보 삭제")
+    class DeleteMovie {
+
+        @Test
+        @DisplayName("정상적인 요청으로 영화 정보를 삭제한다")
+        void success() {
+            // given
+            Movie movie = saveMovie("인셉션", Genre.SF);
+
+            // when
+            Long deletedMovieId = movieService.deleteMovie(movie.getId());
+
+            // then
+            assertThat(deletedMovieId).isEqualTo(movie.getId());
+            assertThat(movieRepository.findById(movie.getId())).isEmpty();
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 영화 ID로 삭제 요청 시 예외가 발생한다")
+        void fail_not_found() {
+            // given
+            Long invalidId = -1L;
+
+            // when & then
+            assertThatThrownBy(() -> movieService.deleteMovie(invalidId))
+                    .isInstanceOf(MovieException.class)
+                    .hasMessageContaining(MOVIE_NOT_FOUND.getMessage()); // 혹은 정의된 예외 메시지 키워드
+        }
+    }
+
+    @Nested
+    @DisplayName("상영중인 영화 조회")
+    class GetMoviesWithScreenings {
+
+        @Test
+        @DisplayName("영화 제목과 장르로 조회하면 해당 영화와 관련된 상영 정보가 반환된다")
+        void success() {
+            // given
+            Movie movie = saveMovie("movie1", DRAMA);
+            Theater theater = saveTheater("theater1");
+            Screening screening = saveScreening(movie, theater, LocalDate.now().plusDays(1));
+            em.clear();
+
+            // when
+            PageResponse<MovieScreeningServiceResponse> result =
+                    movieService.getMoviesWithScreenings("movie1", "drama", 0, 10);
+
+            // then
+            MovieScreeningServiceResponse response = result.getContent().get(0);
+            assertThat(response.getTitle()).isEqualTo("movie1");
+            assertThat(response.getGenre()).isEqualTo("DRAMA");
+
+            assertThat(response.getScreeningServiceResponses())
+                    .hasSize(1)
+                    .extracting(
+                            ScreeningServiceResponse::getDate,
+                            ScreeningServiceResponse::getTheaterName
+                    )
+                    .containsExactly(
+                            tuple(LocalDate.now().plusDays(1), "theater1")
+                    );
         }
     }
 
