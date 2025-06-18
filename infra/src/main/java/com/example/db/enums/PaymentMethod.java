@@ -18,13 +18,4 @@ public enum PaymentMethod {
 
     private final String value;
     private final String code;
-
-    public static PaymentMethod fromValue(String value) {
-        for (PaymentMethod method : PaymentMethod.values()) {
-            if (method.value.equals(value)) { // 여기 value 비교!
-                return method;
-            }
-        }
-        throw new IllegalArgumentException("Unknown PaymentMethod value: " + value);
-    }
 }
