@@ -1,8 +1,8 @@
 package com.example.payment.controller;
 
-import com.example.payment.exception.PaymentConfirmException;
-import com.example.payment.exception.PaymentConfirmErrorCode;
-import com.example.interceptor.PaymentExceptionInterceptor;
+import com.example.payment.exception.PaymentException;
+import com.example.payment.exception.PaymentErrorCode;
+import com.example.payment.interceptor.PaymentExceptionInterceptor;
 import com.example.payment.dto.request.TossPaymentConfirmRequest;
 import com.example.payment.dto.response.TossPaymentConfirmFailResponse;
 import com.example.payment.dto.response.TossPaymentConfirmResponse;
@@ -38,7 +38,6 @@ public class PaymentClient {
     private static final String BASIC_DELIMITER = ":";
     private static final String AUTH_HEADER_PREFIX = "Basic ";
     private static final String PAYMENT_CONFIRM_URI = "/v1/payments/confirm";
-
     private final ObjectMapper objectMapper;
     private RestClient restClient;
     private final PaymentValidator paymentValidator;
@@ -70,15 +69,15 @@ public class PaymentClient {
                 .body(confirmRequest)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (request, response) -> {
-                    throw new PaymentConfirmException(getPaymentConfirmErrorCode(response));
+                    throw new PaymentException(getPaymentConfirmErrorCode(response));
                 })
                 .body(TossPaymentConfirmResponse.class);
     }
 
-    private PaymentConfirmErrorCode getPaymentConfirmErrorCode(final ClientHttpResponse response) throws IOException {
+    private PaymentErrorCode getPaymentConfirmErrorCode(final ClientHttpResponse response) throws IOException {
         TossPaymentConfirmFailResponse confirmFailResponse =
                 objectMapper.readValue(response.getBody(), TossPaymentConfirmFailResponse.class);
-        return PaymentConfirmErrorCode.findByName(confirmFailResponse.getCode());
+        return PaymentErrorCode.findByName(confirmFailResponse.getCode());
     }
 
     private String createPaymentAuthHeader() {
