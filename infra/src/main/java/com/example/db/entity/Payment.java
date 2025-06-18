@@ -8,7 +8,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
@@ -54,7 +53,7 @@ public class Payment extends BaseEntity {
     private User user;
 
     @Builder
-    public Payment(String paymentKey, PaymentType type, String orderId, String orderName, Long totalAmount,
+    private Payment(String paymentKey, PaymentType type, String orderId, String orderName, Long totalAmount,
                    PaymentStatus status, PaymentMethod method, LocalDateTime requestedAt,
                    LocalDateTime approvedAt, User user) {
         this.paymentKey = paymentKey;
@@ -63,15 +62,17 @@ public class Payment extends BaseEntity {
         this.orderName = orderName;
         this.totalAmount = totalAmount;
         this.status = status;
+        this.method = method;
         this.requestedAt = requestedAt;
         this.approvedAt = approvedAt;
+        this.user = user;
     }
 
     public void update(String paymentKey, String type, String method, String status,
                        String requestedAt, String approvedAt){
         this.paymentKey = paymentKey;
         this.type = PaymentType.valueOf(type);
-        this.method = PaymentMethod.fromValue(method);
+        this.method = PaymentMethod.valueOf(method);
         this.status = PaymentStatus.valueOf(status);
         this.requestedAt = OffsetDateTime.parse(requestedAt).toLocalDateTime();;
         this.approvedAt = OffsetDateTime.parse(approvedAt).toLocalDateTime();;
@@ -87,6 +88,7 @@ public class Payment extends BaseEntity {
                 .orderName(orderName)
                 .totalAmount(totalAmount)
                 .status(status)
+                .method(method)
                 .requestedAt(requestedAt)
                 .approvedAt(approvedAt)
                 .build();
