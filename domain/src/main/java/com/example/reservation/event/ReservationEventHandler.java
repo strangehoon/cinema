@@ -1,6 +1,6 @@
-package com.example.event.service;
+package com.example.reservation.event;
 
-import com.example.event.dto.ReservationCompletedEvent;
+import com.example.common.message.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

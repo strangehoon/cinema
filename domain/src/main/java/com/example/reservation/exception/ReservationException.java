@@ -1,6 +1,6 @@
 package com.example.reservation.exception;
 
-import com.example.common.ErrorCode;
+import com.example.common.exception.ErrorCode;
 import lombok.Getter;
 
 @Getter

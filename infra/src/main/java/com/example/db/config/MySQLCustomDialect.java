@@ -1,4 +1,4 @@
-package com.example.db.config.mysql;
+package com.example.db.config;
 
 import org.hibernate.boot.model.FunctionContributions;
 import org.hibernate.boot.model.FunctionContributor;

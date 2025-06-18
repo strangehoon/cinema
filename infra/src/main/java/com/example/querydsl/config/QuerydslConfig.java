@@ -1,4 +1,4 @@
-package com.example.db.config.querydsl;
+package com.example.querydsl.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

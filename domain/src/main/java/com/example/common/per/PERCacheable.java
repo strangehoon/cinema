@@ -1,4 +1,4 @@
-package com.example.common;
+package com.example.common.per;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,6 +1,5 @@
-package com.example.lock;
+package com.example.common.lock;
 
-import com.example.common.DistributedMultiLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;

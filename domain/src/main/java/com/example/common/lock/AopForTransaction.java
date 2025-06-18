@@ -1,4 +1,4 @@
-package com.example.lock;
+package com.example.common.lock;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.springframework.stereotype.Component;

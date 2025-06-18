@@ -1,4 +1,4 @@
-package com.example.event.service;
+package com.example.common.message;
 
 import org.springframework.stereotype.Service;
 

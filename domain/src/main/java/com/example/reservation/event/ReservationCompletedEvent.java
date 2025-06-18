@@ -1,4 +1,4 @@
-package com.example.event.dto;
+package com.example.reservation.event;
 
 import lombok.Builder;
 import lombok.Getter;
