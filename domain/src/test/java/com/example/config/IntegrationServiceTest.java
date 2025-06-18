@@ -2,6 +2,8 @@ package com.example.config;
 
 import com.example.db.repository.*;
 import com.example.movie.service.MovieService;
+import com.example.payment.service.PaymentService;
+import com.example.payment.service.PaymentValidator;
 import com.example.reservation.service.ReservationService;
 import com.example.reservation.service.ReservationValidator;
 import jakarta.persistence.EntityManager;
@@ -12,7 +14,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
-@Import(EmbeddedRedisConfig.class)
+@Import({EmbeddedRedisConfig.class, TestObjectMapperConfig.class})
 @SpringBootTest
 public abstract class IntegrationServiceTest {
 
@@ -42,6 +44,15 @@ public abstract class IntegrationServiceTest {
 
     @Autowired
     protected UserRepository userRepository;
+
+    @Autowired
+    protected PaymentService paymentService;
+
+    @Autowired
+    protected PaymentValidator paymentValidator;
+
+    @Autowired
+    protected PaymentRepository paymentRepository;
 
     @PersistenceContext
     protected EntityManager em;

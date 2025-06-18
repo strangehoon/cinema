@@ -8,7 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 @DataJpaTest
-@Import({TestJpaConfig.class, EmbeddedRedisConfig.class})
+@Import({TestJpaConfig.class})
 public abstract class IntegrationRepositoryTest {
 
     @Autowired
@@ -25,4 +25,6 @@ public abstract class IntegrationRepositoryTest {
     protected ScreeningSeatRepository screeningSeatRepository;
     @Autowired
     protected MovieRepositoryImpl movieRepositoryImpl;
+    @Autowired
+    protected PaymentRepository paymentRepository;
 }

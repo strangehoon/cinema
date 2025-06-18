@@ -1,6 +1,9 @@
 package com.example.config;
 
 import com.example.movie.service.MovieService;
+import com.example.payment.controller.PaymentClient;
+import com.example.payment.controller.PaymentController;
+import com.example.payment.service.PaymentService;
 import com.example.reservation.service.ReservationService;
 import com.example.movie.controller.MovieController;
 import com.example.reservation.controller.ReservationController;
@@ -14,7 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 @WebMvcTest({
         MovieController.class,
-        ReservationController.class
+        ReservationController.class,
+        PaymentController.class
 })
 public abstract class IntegrationControllerSupport {
 
@@ -29,4 +33,10 @@ public abstract class IntegrationControllerSupport {
 
     @MockitoBean
     protected ReservationService reservationService;
+
+    @MockitoBean
+    protected PaymentClient paymentClient;
+
+    @MockitoBean
+    protected PaymentService paymentService;
 }

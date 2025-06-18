@@ -1,6 +1,6 @@
 package com.example.payment.dto.response;
 
-import com.example.payment.dto.request.CompletePaymentServiceRequest;
+import com.example.payment.dto.request.PaymentCompleteServiceRequest;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -18,8 +18,8 @@ public class TossPaymentConfirmResponse {
     String requestedAt;
     String approvedAt;
 
-    public CompletePaymentServiceRequest toServiceRequest() {
-        return CompletePaymentServiceRequest.builder()
+    public PaymentCompleteServiceRequest toServiceRequest() {
+        return PaymentCompleteServiceRequest.builder()
                 .paymentKey(paymentKey)
                 .type(type)
                 .orderId(orderId)

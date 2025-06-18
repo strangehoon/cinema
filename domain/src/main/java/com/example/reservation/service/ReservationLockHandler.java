@@ -1,9 +1,8 @@
 package com.example.reservation.service;
 
-import com.example.annotation.DistributedMultiLock;
-import com.example.lock.LockTemplate;
+import com.example.common.lock.DistributedMultiLock;
 import com.example.db.enums.ReservationStatus;
-import com.example.reservation.dto.request.ReservationServiceRequest;
+import com.example.reservation.dto.request.ReservationCreateServiceRequest;
 import com.example.db.entity.Reservation;
 import com.example.db.entity.User;
 import com.example.db.repository.ReservationRepository;
@@ -19,10 +18,9 @@ import static com.example.reservation.exception.ReservationErrorCode.RESERVATION
 public class ReservationLockHandler {
 
     private final ReservationRepository reservationRepository;
-    private final LockTemplate lockTemplate;
 
     @DistributedMultiLock(expression = "#request.toLockKeys()")
-    public void handleWithAspectLock(ReservationServiceRequest request, User user) {
+    public void handleWithAspectLock(ReservationCreateServiceRequest request, User user) {
         List<Reservation> reservationsToUpdate = reservationRepository
                 .findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds());
 
@@ -35,24 +33,5 @@ public class ReservationLockHandler {
         }
 
         reservationsToUpdate.forEach(reservation -> reservation.reserve(user));
-    }
-
-    public void handleWithTemplateLock(ReservationServiceRequest request, User user) {
-        List<String> lockKeys = request.toLockKeys(); // ex) ["1:5", "1:6", "1:7"]
-
-        lockTemplate.executeMultiLock(lockKeys, () -> {
-            List<Reservation> reservationsToUpdate = reservationRepository
-                    .findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds());
-
-            if (reservationsToUpdate.size() != request.getSeatIds().size()) {
-                throw new ReservationException(RESERVATION_DATA_INCOMPLETE);
-            }
-
-            if (reservationsToUpdate.stream().anyMatch(reservation -> reservation.getStatus() != ReservationStatus.NONE)) {
-                throw new ReservationException(ALREADY_RESERVED_SEAT);
-            }
-
-            reservationsToUpdate.forEach(reservation -> reservation.reserve(user));
-        });
     }
 }

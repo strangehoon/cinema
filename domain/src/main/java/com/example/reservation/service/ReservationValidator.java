@@ -1,6 +1,6 @@
 package com.example.reservation.service;
 
-import com.example.reservation.dto.request.ReservationServiceRequest;
+import com.example.reservation.dto.request.ReservationCreateServiceRequest;
 import com.example.db.entity.ScreeningSeat;
 import com.example.db.repository.ReservationRepository;
 import com.example.db.repository.ScreeningSeatRepository;
@@ -18,7 +18,7 @@ public class ReservationValidator {
     private final ReservationRepository reservationRepository;
     private final ScreeningSeatRepository screeningSeatRepository;
 
-    public void validate(ReservationServiceRequest request){
+    public void validate(ReservationCreateServiceRequest request){
 
         // 1. 해당 상영 시간표에서 이미 예약한 좌석 수 확인
         int alreadyReservedCount = reservationRepository.countByUserIdAndScreeningId(request.getUserId(), request.getScreeningId());

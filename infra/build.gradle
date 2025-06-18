@@ -1,14 +1,20 @@
 dependencies {
-    implementation project(':common')
-    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    // mysql
     implementation 'mysql:mysql-connector-java:8.0.33'
     runtimeOnly 'com.mysql:mysql-connector-j'
-    api 'org.springframework.boot:spring-boot-starter-data-redis'
-    runtimeOnly 'com.h2database:h2'
-    testImplementation 'it.ozimov:embedded-redis:0.7.2'
 
-    // domain 모듈 : 분산락에서 사용
+    // redis
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
     api 'org.redisson:redisson:3.22.0'
+
+    // test 환경 db
+    runtimeOnly 'com.h2database:h2'
+
+    // 날짜, 시간 형식
+    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+
+    // JPA
+    api ('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation 'org.hibernate:hibernate-core:6.6.11.Final'
 
     // QueryDsl
