@@ -1,6 +1,7 @@
 package com.example.common;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -10,11 +11,14 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
+import java.util.List;
 
 @Slf4j
 @Aspect
@@ -23,9 +27,13 @@ import java.lang.reflect.Method;
 @RequiredArgsConstructor
 public class PERCacheableAspect {
 
-    private final PerCacheService<Object> perCacheService;
     private static final ExpressionParser PARSER = new SpelExpressionParser();
     private static final DefaultParameterNameDiscoverer NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
+    private final RedisTemplate<String, String> redisTemplate;
+    private final DefaultRedisScript<List> getScript;
+    private final DefaultRedisScript<Long> setScript;
+    private final ObjectMapper objectMapper;
+    private static final double BETA = 1;
 
     @Around("@annotation(perCacheable)")
     public Object handlePERCache(ProceedingJoinPoint joinPoint, PERCacheable perCacheable) throws Throwable {
@@ -41,19 +49,35 @@ public class PERCacheableAspect {
 
         String key = PARSER.parseExpression(perCacheable.key()).getValue(context, String.class);
         int ttlMillis = perCacheable.ttl() * 1000;
+        String deltaKey = key + ":delta";
 
-        return perCacheService.get(
-                key,
-                () -> {
-                    try {
-                        return joinPoint.proceed();
-                    } catch (Throwable e) {
-                        throw new RuntimeException(e);
-                    }
-                },
-                createTypeReference(method),
-                ttlMillis
-        );
+        List<Object> result = redisTemplate.execute(getScript, List.of(key, deltaKey));
+        Object cachedObject = result.get(0);
+        Object deltaObject = result.get(1);
+        Long ttl = ((Number) result.get(2)).longValue();
+        Long delta = deltaObject == null ? null : Long.parseLong(deltaObject.toString());
+
+        double x = Math.log(Math.random());
+        if (cachedObject == null || delta == null || ttl == null || -1 * delta * BETA * x >= ttl) {
+            long start = System.currentTimeMillis();
+            Object recomputed;
+            try {
+                recomputed = joinPoint.proceed();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+
+            long recomputationTime = System.currentTimeMillis() - start;
+            List<String> keys = List.of(key, deltaKey);
+            String json = objectMapper.writeValueAsString(recomputed);
+            String deltaString = String.valueOf(recomputationTime);
+            String ttlString = String.valueOf(ttlMillis);
+
+            redisTemplate.execute(setScript, keys, json, deltaString, ttlString);
+            return recomputed;
+        }
+
+        return objectMapper.readValue(cachedObject.toString(), createTypeReference(method));
     }
 
     private boolean evaluateCondition(String condition, StandardEvaluationContext context) {

@@ -1,4 +1,4 @@
-package com.example.reservation.service;
+package com.example.lock;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.springframework.stereotype.Component;
