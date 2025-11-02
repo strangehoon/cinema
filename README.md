@@ -11,7 +11,7 @@
 </br></br>
 
 ## 📊 아키텍쳐
-<img src = "https://github.com/user-attachments/assets/bd02234e-9961-4317-b787-812bdbb5390b" height = "520px" width = "920px" allign = "left">
+<img src = "https://github.com/user-attachments/assets/8159fed1-4a4c-415e-b929-75356babb66d" height = "520px" width = "920px" allign = "left">
 
 </br></br>
 
