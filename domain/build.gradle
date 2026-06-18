@@ -1,5 +1,0 @@
-dependencies {
-    implementation project(':infra')
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-    testImplementation 'it.ozimov:embedded-redis:0.7.2'
-}
