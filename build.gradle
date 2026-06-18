@@ -4,73 +4,60 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
-bootJar {
-	enabled = false  // 루트 프로젝트에서 실행 가능한 JAR을 비활성화
-}
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
 
-// 모든 하위 모듈들에 이 설정을 적용
-subprojects {
-	apply plugin: 'java'
-	apply plugin: 'java-library'
-	apply plugin: 'org.springframework.boot'
-	apply plugin: 'io.spring.dependency-management'
-
-	group = 'com.example'
-	version = '0.0.1-SNAPSHOT'
-
-	// 새로운 방식으로 Java 버전 설정
-	java {
-		toolchain {
-			languageVersion = JavaLanguageVersion.of(17)
-		}
-	}
-
-	// 기본적으로 실행 가능한 JAR을 비활성화하고, 라이브러리 JAR을 활성화
-	bootJar {
-		enabled = false
-	}
-	jar {
-		enabled = true
-	}
-
-	configurations {
-		compileOnly {
-			extendsFrom annotationProcessor
-		}
-	}
-
-	repositories {
-		mavenCentral()
-	}
-
-	dependencies {
-		implementation 'org.springframework.boot:spring-boot-starter'
-		testImplementation 'org.springframework.boot:spring-boot-starter-test'
-		implementation 'org.springframework.boot:spring-boot-starter-actuator'
-		implementation 'io.micrometer:micrometer-registry-prometheus'
-		testRuntimeOnly 'com.h2database:h2'
-		compileOnly 'org.projectlombok:lombok'
-		annotationProcessor 'org.projectlombok:lombok'
-	}
-
-	test {
-		useJUnitPlatform()  // JUnit5 사용 설정
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
-allprojects {
-	tasks.withType(JavaCompile) {
-		options.encoding = 'UTF-8'
-		options.compilerArgs << "-parameters"
+repositories {
+	mavenCentral()
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
 	}
 }
 
-// API 모듈에 대해 설정을 오버라이드
-project(':api') {
-	bootJar {
-		enabled = true  // API 모듈만 실행 가능한 JAR 생성
-	}
-	jar {
-		enabled = false
-	}
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'org.redisson:redisson:3.22.0'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+	implementation 'org.hibernate:hibernate-core:6.6.11.Final'
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	implementation 'mysql:mysql-connector-java:8.0.33'
+
+	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'it.ozimov:embedded-redis:0.7.2'
+	testRuntimeOnly 'com.h2database:h2'
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+	options.compilerArgs << '-parameters'
+}
+
+test {
+	useJUnitPlatform()
 }
