@@ -34,8 +34,13 @@
 
 ## Git 관례
 
-- 이슈: `[Setting]`, `[Feat]`, `[Refactor]`, `[Chore]`와 `💁 개요 / 📑 체크리스트` 형식.
+- 이슈: `[Setting]`, `[Feat]`, `[Fix]`, `[Refactor]`, `[Chore]`와 `💁 개요 / 📑 체크리스트` 형식.
+- 이슈·PR 생성 시 기존 라벨을 확인하고 작업 성격에 맞는 라벨을 최소 하나 지정한다.
+- 라벨: 기능 `Feat`, 오류 `Fix`, 리팩토링·성능 `Refactor`, 환경·개발 기준 `Setting`, 기타 `Chore`.
 - 브랜치: `develop` 기준 `feature/#<이슈번호>`.
 - 커밋: `type : 설명 #<이슈번호>`; 문서 변경은 `docs`를 사용한다.
 - 커밋 전 변경 목록을 확인하고 작업한 파일만 스테이징한다.
-- PR 작성 시 `.github/pull_request_template.md`를 따른다.
+- PR은 작업 브랜치에서 `develop`을 대상으로 하며 제목은 `type : 설명 #<이슈번호>`로 작성한다.
+- PR 본문은 `.github/pull_request_template.md`를 따르고 변경 내용·검증 결과·미검증 항목을 간결하게 적는다.
+- PR에 관련 이슈를 연결한다. 이슈 전체를 완료하면 `Closes #번호`, 일부 작업이면 `Refs #번호`를 사용한다.
+- PR 라벨은 해당 변경 범위에 맞게 지정하고 제출 전 diff·대상 브랜치·이슈 연결·라벨을 확인한다.
