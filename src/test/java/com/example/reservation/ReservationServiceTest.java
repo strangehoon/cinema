@@ -8,33 +8,36 @@ import com.example.db.enums.Rating;
 import com.example.db.enums.ReservationStatus;
 import com.example.reservation.dto.request.ReservationCreateServiceRequest;
 import com.example.reservation.dto.response.ReservationCreateServiceResponse;
-import com.example.reservation.service.ReservationValidator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.example.reservation.exception.ReservationException;
+import com.example.db.repository.BookingSeatRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ReservationServiceTest extends IntegrationServiceTest {
 
-    @MockitoBean
-    private ReservationValidator reservationValidator;
+    @Autowired
+    private BookingSeatRepository bookingSeatRepository;
 
-    // redisson 분산락의 트랜잭션 전파 옵션 때문에 @Transactional 제거
     @AfterEach
     void tearDown() {
+        bookingSeatRepository.deleteAllInBatch();
         reservationRepository.deleteAllInBatch();
+        paymentRepository.deleteAllInBatch();
+        bookingOrderRepository.deleteAllInBatch();
         screeningSeatRepository.deleteAllInBatch();
         screeningRepository.deleteAllInBatch();
         theaterRepository.deleteAllInBatch();
         movieRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
-        paymentRepository.deleteAllInBatch();
     }
 
     @Nested
@@ -70,6 +73,81 @@ class ReservationServiceTest extends IntegrationServiceTest {
             assertThat(payment.getTotalAmount()).isEqualTo(reservations.stream().mapToLong(Reservation::getPrice).sum());
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.READY);
             assertThat(payment.getOrderName()).contains(movie.getTitle());
+            assertThat(reservationRepository.findByPaymentId(payment.getId()))
+                    .allMatch(reservation -> reservation.getStatus() == ReservationStatus.IN_PROGRESS);
+        }
+
+        @Test
+        @DisplayName("이미 시작한 회차는 좌석과 주문을 변경하지 않는다")
+        void fail_started_screening() {
+            // given
+            User user = saveUser();
+            Theater theater = saveTheater();
+            Movie movie = saveMovie();
+            Screening screening = screeningRepository.save(Screening.builder()
+                    .date(LocalDate.of(2024, 1, 1))
+                    .startedAt(LocalDateTime.of(2024, 1, 1, 14, 0))
+                    .endedAt(LocalDateTime.of(2024, 1, 1, 16, 0))
+                    .movie(movie).theater(theater).build());
+            ScreeningSeat seat = saveScreeningSeats(theater, 1).getFirst();
+            Reservation inventory = saveReservationsForSeats(screening, List.of(seat)).getFirst();
+            ReservationCreateServiceRequest request = ReservationCreateServiceRequest.builder()
+                    .userId(user.getId()).screeningId(screening.getId())
+                    .seatIds(List.of(seat.getId())).build();
+
+            // when & then
+            assertThatThrownBy(() -> reservationService.createReserve(request))
+                    .isInstanceOf(ReservationException.class)
+                    .hasMessageContaining("상영");
+            assertThat(reservationRepository.findById(inventory.getId()).orElseThrow().getStatus())
+                    .isEqualTo(ReservationStatus.NONE);
+        }
+
+        @Test
+        @DisplayName("다른 상영관 좌석은 재고 행이 있더라도 예매할 수 없다")
+        void fail_other_theater_seat() {
+            // given
+            User user = saveUser();
+            Theater screeningTheater = saveTheater();
+            Theater anotherTheater = theaterRepository.save(Theater.builder().name("다른 관").build());
+            Screening screening = saveScreening(saveMovie(), screeningTheater);
+            ScreeningSeat seat = saveScreeningSeats(anotherTheater, 1).getFirst();
+            saveReservationsForSeats(screening, List.of(seat));
+            ReservationCreateServiceRequest request = ReservationCreateServiceRequest.builder()
+                    .userId(user.getId()).screeningId(screening.getId()).seatIds(List.of(seat.getId())).build();
+
+            // when & then
+            assertThatThrownBy(() -> reservationService.createReserve(request))
+                    .isInstanceOf(ReservationException.class)
+                    .hasMessageContaining("좌석");
+        }
+
+        @Test
+        @DisplayName("만료된 보유 좌석은 예약 요청에서 즉시 해제하고 다시 예약한다")
+        void success_reuse_expired_hold() {
+            // given
+            User first = saveUser();
+            User next = userRepository.save(User.builder().name("next").build());
+            Theater theater = saveTheater();
+            Screening screening = saveScreening(saveMovie(), theater);
+            ScreeningSeat seat = saveScreeningSeats(theater, 1).getFirst();
+            saveReservationsForSeats(screening, List.of(seat));
+            var firstOrder = reservationService.createReserve(ReservationCreateServiceRequest.builder()
+                    .userId(first.getId()).screeningId(screening.getId())
+                    .seatIds(List.of(seat.getId())).build());
+            Payment expired = paymentRepository.findByOrderId(firstOrder.getOrderId()).orElseThrow();
+            expired.setExpiresAt(LocalDateTime.now().minusSeconds(1));
+            paymentRepository.save(expired);
+
+            // when
+            var nextOrder = reservationService.createReserve(ReservationCreateServiceRequest.builder()
+                    .userId(next.getId()).screeningId(screening.getId())
+                    .seatIds(List.of(seat.getId())).build());
+
+            // then
+            assertThat(nextOrder.getOrderId()).isNotEqualTo(firstOrder.getOrderId());
+            assertThat(paymentRepository.findByOrderId(firstOrder.getOrderId()).orElseThrow().getStatus())
+                    .isEqualTo(PaymentStatus.EXPIRED);
         }
 
         private User saveUser() {
@@ -97,9 +175,9 @@ class ReservationServiceTest extends IntegrationServiceTest {
 
         private Screening saveScreening(Movie movie, Theater theater) {
             return screeningRepository.save(Screening.builder()
-                    .date(LocalDate.of(2024, 1, 1))
-                    .startedAt(LocalDateTime.of(2024, 1, 1, 14, 0))
-                    .endedAt(LocalDateTime.of(2024, 1, 1, 16, 0))
+                    .date(LocalDate.now().plusDays(1))
+                    .startedAt(LocalDateTime.now().plusDays(1))
+                    .endedAt(LocalDateTime.now().plusDays(1).plusHours(2))
                     .movie(movie)
                     .theater(theater)
                     .build());

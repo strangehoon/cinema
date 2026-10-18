@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="840" viewBox="0 0 600 840" role="img" aria-label="영화 포스터 배경">
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#35504a"/><stop offset="1" stop-color="#d5a769"/></linearGradient><radialGradient id="glow"><stop stop-color="#ffe7bd" stop-opacity=".8"/><stop offset="1" stop-color="#ffe7bd" stop-opacity="0"/></radialGradient><linearGradient id="ground" x2="0" y2="1"><stop stop-color="#35504a" stop-opacity=".1"/><stop offset="1" stop-color="#090b14"/></linearGradient></defs>
+<rect width="600" height="840" fill="url(#bg)"/><circle cx="167" cy="369" r="208" fill="url(#glow)"/><circle cx="167" cy="369" r="118" fill="#ffe7bd" opacity=".76"/><circle cx="167" cy="369" r="111" fill="none" stroke="#fff" stroke-opacity=".36" stroke-width="2"/>
+<path d="M0 513 Q160 423 320 518 T600 473 V840 H0Z" fill="url(#ground)"/><path d="M0 680 Q210 550 600 670 V840 H0Z" fill="#0b101c" opacity=".57"/>
+<path d="M56 0 L82 0 L336 840 L286 840Z" fill="#fff" opacity=".045"/><path d="M396 0 L426 0 L616 840 L576 840Z" fill="#fff" opacity=".055"/>
+<g fill="#fff" opacity=".42"><circle cx="80" cy="110" r="2"/><circle cx="510" cy="150" r="2"/><circle cx="450" cy="370" r="1.5"/><circle cx="120" cy="410" r="1.5"/></g>
+<rect x="21" y="21" width="558" height="798" fill="none" stroke="#fff" stroke-opacity=".26"/>
+</svg>
