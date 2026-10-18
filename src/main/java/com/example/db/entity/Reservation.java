@@ -64,4 +64,10 @@ public class Reservation extends BaseEntity {
     public void putPayment(Payment payment){
         this.payment = payment;
     }
+
+    public void release() {
+        this.status = ReservationStatus.NONE;
+        this.user = null;
+        this.payment = null;
+    }
 }

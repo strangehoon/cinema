@@ -357,3 +357,13 @@ gradle-app.setting
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,git,java,maven,eclipse,intellij,gradle,netbeans,visualstudiocode
+
+# Frontend local artifacts
+.env
+.env.*
+!.env.example
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+web/*.tsbuildinfo

@@ -19,8 +19,16 @@ public class User extends BaseEntity {
     @Column(length = 20)
     private String name;
 
+    @Column(length = 190, unique = true)
+    private String email;
+
+    @Column(length = 100)
+    private String passwordHash;
+
     @Builder
-    private User(String name) {
+    private User(String name, String email, String passwordHash) {
         this.name = name;
+        this.email = email;
+        this.passwordHash = passwordHash;
     }
 }

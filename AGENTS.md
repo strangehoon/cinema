@@ -26,7 +26,17 @@
 
 ## 검증
 
-- 현재 백엔드 테스트는 `./gradlew test` 또는 Windows의 `.\gradlew.bat test`로 실행한다.
+- 백엔드 기능 추가·수정·리팩토링 시 관련 테스트 코드를 함께 작성하거나 보완한다.
+- 기능 구현 전에 테스트를 작성하고 실패를 확인한 뒤 구현·테스트 통과·리팩토링 순서로 진행한다.
+- 정상·예외·경계 조건을 검증하고, 버그 수정에는 재발을 방지하는 회귀 테스트를 추가한다.
+- 백엔드 테스트는 도메인·계층별로 구성하고 클래스명은 `<대상 클래스>Test`로 작성한다. 픽스처는 빌더와 `save*` 헬퍼로 생성한다.
+- JUnit 5의 `@Nested`, 한글 `@DisplayName`, `// given`, `// when`, `// then` 형식을 따른다. 예외 검증은 `// when & then`을 허용한다.
+- 메서드명은 `success`, `success_*`, `fail_*`로 작성하고 AssertJ·MockMvc로 검증한다. 입력 조합은 `@ParameterizedTest`와 `@MethodSource`로 검증한다.
+- 서비스·저장소 통합 테스트는 각각 `IntegrationServiceTest`, `IntegrationRepositoryTest`를 상속하고, 컨트롤러 테스트는 `IntegrationControllerSupport`를 상속한다.
+- 순수 로직은 단위 테스트로 검증한다. Testcontainers 설정은 공통 테스트 기반에 모으고 동일한 작성 형식을 적용한다.
+- 프론트엔드 테스트 도구·구성과 세부 관례는 에이전트가 정하고 기능 구현과 함께 테스트를 작성한다.
+- 프론트는 사용자 동작과 로딩·오류·경계 상태를 검증하며, 주요 예매 흐름은 `spec.md`에 따라 Playwright E2E 테스트로 확인한다.
+- 백엔드 테스트는 `./gradlew test` 또는 Windows의 `.\gradlew.bat test`로 실행한다.
 - 실행 전 Java 버전과 DB·Redis 등 테스트 요구 환경을 확인한다.
 - 동시성·결제 변경에는 실패와 경합 상황을 검증하는 테스트를 포함한다.
 - 문서만 변경하면 내용 일관성과 `git diff --check`를 확인한다.

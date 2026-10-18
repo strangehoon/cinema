@@ -9,7 +9,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 
 @Entity
 @Getter
@@ -21,24 +20,16 @@ public class Payment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 40)
+    @Column(length = 200)
     private String paymentKey;
 
     @Column(length = 20)
     @Enumerated(EnumType.STRING)
     private PaymentType type;
 
-    @Column(length = 100)
-    private String orderId;
-
-    @Column(length = 50)
-    private String orderName;
-
-    private Long totalAmount;
-
-    @Column(length = 20)
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus status;
+    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, optional = false)
+    @JoinColumn(name = "booking_order_id", nullable = false, unique = true)
+    private BookingOrder order;
 
     @Column(length = 20)
     @Enumerated(EnumType.STRING)
@@ -48,51 +39,28 @@ public class Payment extends BaseEntity {
 
     private LocalDateTime approvedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private User user;
-
     @Builder
     private Payment(String paymentKey, PaymentType type, String orderId, String orderName, Long totalAmount,
                    PaymentStatus status, PaymentMethod method, LocalDateTime requestedAt,
                    LocalDateTime approvedAt, User user) {
         this.paymentKey = paymentKey;
         this.type = type;
-        this.orderId = orderId;
-        this.orderName = orderName;
-        this.totalAmount = totalAmount;
-        this.status = status;
+        this.order = new BookingOrder(orderId, orderName, totalAmount, status, user);
         this.method = method;
         this.requestedAt = requestedAt;
         this.approvedAt = approvedAt;
-        this.user = user;
     }
 
-    public void update(String paymentKey, String type, String method, String status,
-                       String requestedAt, String approvedAt){
-        this.paymentKey = paymentKey;
-        this.type = PaymentType.valueOf(type);
-        this.method = PaymentMethod.valueOf(method);
-        this.status = PaymentStatus.valueOf(status);
-        this.requestedAt = OffsetDateTime.parse(requestedAt).toLocalDateTime();;
-        this.approvedAt = OffsetDateTime.parse(approvedAt).toLocalDateTime();;
-    }
+    public String getOrderId() { return order.getOrderId(); }
+    public String getOrderName() { return order.getOrderName(); }
+    public Long getTotalAmount() { return order.getTotalAmount(); }
+    public PaymentStatus getStatus() { return order.getStatus(); }
+    public LocalDateTime getExpiresAt() { return order.getExpiresAt(); }
+    public User getUser() { return order.getUser(); }
 
-    public static Payment of(String paymentKey, PaymentType type, String orderId, String orderName, Long totalAmount,
-            PaymentStatus status, PaymentMethod method, LocalDateTime requestedAt, LocalDateTime approvedAt, User user) {
-
-        return Payment.builder()
-                .paymentKey(paymentKey)
-                .type(type)
-                .orderId(orderId)
-                .orderName(orderName)
-                .totalAmount(totalAmount)
-                .status(status)
-                .method(method)
-                .requestedAt(requestedAt)
-                .approvedAt(approvedAt)
-                .build();
-    }
+    public void setExpiresAt(LocalDateTime expiresAt) { order.setExpiresAt(expiresAt); }
+    public void setStatus(PaymentStatus status) { order.setStatus(status); }
+    public void setPaymentKey(String paymentKey) { this.paymentKey = paymentKey; }
 
     public static Payment of(String orderId, String orderName, Long totalAmount,
                              PaymentStatus status, User user) {

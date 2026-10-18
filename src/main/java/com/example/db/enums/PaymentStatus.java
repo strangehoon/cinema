@@ -11,6 +11,7 @@ public enum PaymentStatus {
     IN_PROGRESS("IN_PROGRESS", "결제 인증 완료"),
     WAITING_FOR_DEPOSIT("WAITING_FOR_DEPOSIT", "입금 대기 중"),
     DONE("DONE", "결제 승인 완료"),
+    REFUNDING("REFUNDING", "환불 확인 중"),
     CANCELED("CANCELED", "결제 취소 완료"),
     PARTIAL_CANCELED("PARTIAL_CANCELED", "결제 부분 취소 완료"),
     ABORTED("ABORTED", "결제 실패"),

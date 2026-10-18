@@ -54,33 +54,4 @@ public class Movie extends BaseEntity {
         this.genre = genre;
     }
 
-    public void updateInfo(String title, String rating, LocalDate releasedDate, String thumbnailImage, int runningTimeMin, String genre) {
-        this.title = title;
-        this.rating = Rating.valueOf(rating);
-        this.releasedDate = releasedDate;
-        this.thumbnailImage = thumbnailImage;
-        this.runningTimeMin = runningTimeMin;
-        this.genre = Genre.valueOf(genre);
-    }
-
-    public void addScreening(Screening screening){
-        this.screenings.add(screening);
-    }
-
-    public void clearScreenings() {
-        this.screenings.clear();
-    }
-
-    public static Movie of(String title, String rating, LocalDate releasedDate, String thumbnailImage, int runningTimeMin, String genre) {
-
-        return Movie.builder()
-                .title(title)
-                .rating(Rating.valueOf(rating))
-                .releasedDate(releasedDate)
-                .thumbnailImage(thumbnailImage)
-                .runningTimeMin(runningTimeMin)
-                .genre(Genre.valueOf(genre))
-                .build();
-    }
-
 }
