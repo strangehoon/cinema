@@ -74,3 +74,64 @@ jobs:
           path: compose.log
       - if: always()
         run: docker compose down --volumes
+
+  deployment-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.9
+      - run: terraform fmt -check -recursive infra/aws
+      - run: terraform init -backend=false
+        working-directory: infra/aws
+      - run: terraform validate
+        working-directory: infra/aws
+      - run: bash -n deploy/aws/app/deploy.sh deploy/aws/app/rollback.sh deploy/aws/ci/deploy.sh deploy/aws/install.sh infra/aws/user-data.sh
+      - run: bash deploy/aws/tests/deploy_test.sh
+      - name: Validate AWS Compose files
+        run: |
+          export MYSQL_PASSWORD=test MYSQL_ROOT_PASSWORD=test GRAFANA_ADMIN_PASSWORD=test DB_PASSWORD=test
+          export API_BLUE_IMAGE=example/api:blue API_GREEN_IMAGE=example/api:green
+          export WEB_BLUE_IMAGE=example/web:blue WEB_GREEN_IMAGE=example/web:green
+          for file in deploy/aws/common/compose.yml deploy/aws/mysql/compose.yml deploy/aws/redis/compose.yml deploy/aws/monitoring/compose.yml; do
+            docker compose -f "$file" config --quiet
+          done
+          docker compose -f deploy/aws/app/compose.yml --profile blue --profile green config --quiet
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    needs: [backend, frontend, compose-e2e, deployment-config]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: cinema-develop-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}:api-${{ github.sha }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}:web-${{ github.sha }}
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-2
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+      - name: Deploy to EC2
+        env:
+          IMAGE_BASE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}
+          ARTIFACT_BUCKET: ${{ vars.AWS_ARTIFACT_BUCKET }}
+        run: bash deploy/aws/ci/deploy.sh "$GITHUB_SHA" "$IMAGE_BASE" "$ARTIFACT_BUCKET"
