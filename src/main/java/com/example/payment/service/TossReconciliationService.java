@@ -1,6 +1,7 @@
 package com.example.payment.service;
 
 import com.example.reservation.service.BookingService;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ public class TossReconciliationService {
     }
 
     @Scheduled(fixedDelay = 30_000, initialDelay = 30_000)
+    @SchedulerLock(name = "reconcile-toss-payments", lockAtMostFor = "PT5M")
     public void reconcile() {
         if (!mode.equals("toss")) return;
         for (BookingService.PendingToss pending : bookings.pendingToss()) {

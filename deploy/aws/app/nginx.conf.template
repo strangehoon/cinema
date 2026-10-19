@@ -1,0 +1,27 @@
+server {
+    listen 80;
+    server_name _;
+
+    location /api/ {
+        proxy_pass http://api-__COLOR__:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://web-__COLOR__:80;
+        proxy_set_header Host $host;
+    }
+}
+
+server {
+    listen 9091;
+    server_name _;
+
+    location = /actuator/prometheus {
+        proxy_pass http://api-__COLOR__:8081;
+    }
+
+    location / { return 404; }
+}

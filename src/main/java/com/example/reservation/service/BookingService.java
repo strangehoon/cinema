@@ -11,7 +11,6 @@ import com.example.db.repository.ReservationRepository;
 import com.example.reservation.event.ReservationCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -177,7 +176,6 @@ public class BookingService {
     @Transactional(readOnly = true)
     public OrderView order(String orderId, Long userId) { return view(ownedPayment(orderId, userId)); }
 
-    @Scheduled(fixedDelay = 10_000)
     @Transactional
     public void expireDue() {
         payments.findByStatusAndExpiresAtBefore(PaymentStatus.READY, LocalDateTime.now()).forEach(payment -> {

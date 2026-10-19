@@ -1,0 +1,9 @@
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    command: ["--path.rootfs=/host"]
+    volumes:
+      - /:/host:ro,rslave

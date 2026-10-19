@@ -35,6 +35,8 @@ dependencies {
 	implementation 'org.flywaydb:flyway-core'
 	runtimeOnly 'org.flywaydb:flyway-mysql'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'net.javacrumbs.shedlock:shedlock-spring:7.10.1'
+	implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.10.1'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'org.hibernate:hibernate-core:6.6.11.Final'
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'

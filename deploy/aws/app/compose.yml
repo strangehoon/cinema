@@ -1,0 +1,61 @@
+name: cinema-app
+
+x-api: &api
+  restart: unless-stopped
+  environment:
+    DB_HOST: 10.20.1.20
+    DB_PORT: 3306
+    DB_NAME: cinema
+    DB_USER: cinema
+    DB_PASSWORD: ${DB_PASSWORD}
+    REDIS_HOST: 10.20.1.30
+    REDIS_PORT: 6379
+    PAYMENT_MODE: mock
+    TOSS_SECRET_KEY: dummy
+    MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus
+    JAVA_TOOL_OPTIONS: -Xms128m -Xmx384m -XX:MaxMetaspaceSize=192m -Duser.timezone=Asia/Seoul
+  mem_limit: 700m
+  healthcheck:
+    test: ["CMD-SHELL", "curl -fsS http://localhost:8081/actuator/health || exit 1"]
+    interval: 10s
+    timeout: 5s
+    retries: 60
+    start_period: 180s
+
+x-web: &web
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+    interval: 10s
+    timeout: 3s
+    retries: 10
+
+services:
+  proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "9091:9091"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
+
+  api-blue:
+    <<: *api
+    image: ${API_BLUE_IMAGE}
+    profiles: ["blue"]
+
+  web-blue:
+    <<: *web
+    image: ${WEB_BLUE_IMAGE}
+    profiles: ["blue"]
+
+  api-green:
+    <<: *api
+    image: ${API_GREEN_IMAGE}
+    profiles: ["green"]
+
+  web-green:
+    <<: *web
+    image: ${WEB_GREEN_IMAGE}
+    profiles: ["green"]
