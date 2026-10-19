@@ -32,7 +32,7 @@ prepare() {
   export CINEMA_HOME="$temporary/$1"
   export DOCKER_LOG="$CINEMA_HOME/docker.log"
   mkdir -p "$CINEMA_HOME/release/app" "$CINEMA_HOME/app/nginx"
-  cp "$root/app/compose.yml" "$root/app/nginx.conf.template" "$CINEMA_HOME/release/app/"
+  cp "$root/app/compose.yml" "$root/app/nginx.conf.template" "$root/app/web.conf" "$CINEMA_HOME/release/app/"
   cp "$root/app/compose.yml" "$root/app/nginx.conf.template" "$CINEMA_HOME/app/"
   echo blue >"$CINEMA_HOME/app/active-color"
   sed 's/__COLOR__/blue/g' "$root/app/nginx.conf.template" >"$CINEMA_HOME/app/nginx/default.conf"
