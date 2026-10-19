@@ -11,6 +11,7 @@ app_dir="$cinema_home/app"
 mkdir -p "$app_dir/nginx"
 cp "$cinema_home/release/app/compose.yml" "$app_dir/compose.yml"
 cp "$cinema_home/release/app/nginx.conf.template" "$app_dir/nginx.conf.template"
+cp "$cinema_home/release/app/web.conf" "$app_dir/web.conf"
 cd "$app_dir"
 
 active=""
