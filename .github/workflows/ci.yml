@@ -135,5 +135,4 @@ jobs:
       - name: Deploy to EC2
         env:
           IMAGE_BASE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}
-          ARTIFACT_BUCKET: ${{ vars.AWS_ARTIFACT_BUCKET }}
-        run: bash deploy/aws/ci/deploy.sh "$GITHUB_SHA" "$IMAGE_BASE" "$ARTIFACT_BUCKET"
+        run: bash deploy/aws/ci/deploy.sh "$GITHUB_SHA" "$IMAGE_BASE" "$GITHUB_REPOSITORY"

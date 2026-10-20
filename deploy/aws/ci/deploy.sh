@@ -3,9 +3,10 @@ set -euo pipefail
 
 sha="$1"
 image_base="$2"
-bucket="$3"
+repository="$3"
 [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid commit SHA" >&2; exit 1; }
 [[ "$image_base" =~ ^[a-zA-Z0-9._/-]+$ ]] || { echo "Invalid Docker image name" >&2; exit 1; }
+[[ "$repository" =~ ^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$ ]] || { echo "Invalid GitHub repository" >&2; exit 1; }
 
 declare -A instances
 for role in mysql redis monitoring app; do
@@ -35,12 +36,9 @@ for role in mysql redis monitoring app; do
   [[ "$ping" == Online ]] || { echo "SSM unavailable on $role" >&2; exit 1; }
 done
 
-tar -czf deployment.tar.gz -C deploy/aws --exclude ci .
-aws s3 cp deployment.tar.gz "s3://$bucket/releases/$sha/deployment.tar.gz"
-
 for role in mysql redis monitoring app; do
   id="${instances[$role]}"
-  command="set -e; export AWS_DEFAULT_REGION=ap-northeast-2; for attempt in \$(seq 1 120); do docker compose version >/dev/null 2>&1 && break; sleep 5; done; docker compose version; mkdir -p /opt/cinema/release; aws s3 cp s3://$bucket/releases/$sha/deployment.tar.gz /tmp/cinema-deployment.tar.gz; tar -xzf /tmp/cinema-deployment.tar.gz -C /opt/cinema/release; bash /opt/cinema/release/install.sh $role $sha $image_base"
+  command="set -e; export AWS_DEFAULT_REGION=ap-northeast-2; for attempt in \$(seq 1 120); do docker compose version >/dev/null 2>&1 && break; sleep 5; done; docker compose version; mkdir -p /opt/cinema/release; curl -fLSs --retry 3 --retry-delay 2 https://github.com/$repository/archive/$sha.tar.gz -o /tmp/cinema-source-$sha.tar.gz; mkdir -p /tmp/cinema-source-$sha; tar -xzf /tmp/cinema-source-$sha.tar.gz -C /tmp/cinema-source-$sha --strip-components=1; cp -a /tmp/cinema-source-$sha/deploy/aws/. /opt/cinema/release/; bash /opt/cinema/release/install.sh $role $sha $image_base"
   jq -n --arg command "$command" '{commands:[$command]}' >ssm-parameters.json
   command_id="$(aws ssm send-command --instance-ids "$id" --document-name AWS-RunShellScript \
     --parameters file://ssm-parameters.json --query 'Command.CommandId' --output text)"
