@@ -31,8 +31,8 @@ terraform plan -var='budget_email=본인@example.com'
 terraform apply -var='budget_email=본인@example.com'
 ```
 
-4. Terraform 출력의 `github_deploy_role_arn`, `artifact_bucket`, `app_url`을 확인한다. GitHub 저장소의 Actions **Variables**에 `AWS_ROLE_ARN`과 `AWS_ARTIFACT_BUCKET`을 각각 설정한다. 기존 Actions **Secrets**인 `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `DOCKERHUB_REPONAME`도 확인한다. EC2가 이미지를 읽도록 Docker Hub 저장소는 공개로 설정한다.
-5. `feature/#25` PR의 CI가 통과한 뒤 `develop`에 병합한다. 이후 `develop` 푸시 때 테스트 → API·웹 이미지 게시 → EC2 기동 → MySQL·Redis·모니터링 시작 → 비활성 색상 배포·검사 → Nginx 전환 순서로 진행된다. GitHub Actions가 AWS에 접근할 때에는 OIDC 역할을 사용한다.
+4. Terraform 출력의 `github_deploy_role_arn`, `app_url`을 확인한다. GitHub 저장소의 Actions **Variables**에 `AWS_ROLE_ARN`을 설정한다. Actions **Secrets**인 `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `DOCKERHUB_REPONAME`도 확인한다. EC2가 이미지와 해당 커밋의 배포 파일을 읽도록 Docker Hub와 GitHub 저장소는 공개로 설정한다.
+5. `develop` 푸시 때 테스트 → API·웹 이미지를 Docker Hub에 게시 → EC2 기동 → 각 EC2가 해당 커밋의 GitHub 소스 아카이브에서 배포 파일을 다운로드 → MySQL·Redis·모니터링 시작 → 비활성 색상 배포·검사 → Nginx 전환 순서로 진행된다. GitHub Actions는 OIDC 역할로 AWS SSM 명령을 보낸다. 배포 아티팩트용 S3는 사용하지 않으며 Terraform 상태용 S3는 계속 사용한다.
 
 ## 확인과 복구
 
@@ -41,6 +41,7 @@ terraform apply -var='budget_email=본인@example.com'
 - 성공 후 문제가 발견되면 SSM Run Command로 앱 EC2에서 `bash /opt/cinema/release/app/rollback.sh`를 실행한다. 이전 색상의 이미지와 DB 스키마가 새 버전과 호환되어야 한다. DB 마이그레이션은 Blue/Green 공존과 롤백을 고려해 이전 API와도 호환되게 작성한다.
 - Grafana는 SSM Session Manager의 `AWS-StartPortForwardingSession`으로 모니터링 EC2의 3000번 포트를 로컬에 전달해 `http://localhost:3000`에서 본다. 관리자 비밀번호는 Parameter Store의 `/cinema/grafana-admin-password`에 있다.
 - 필요할 때 EC2를 수동 기동할 수 있다. 각 인스턴스는 부팅 시 4시간 자동 중지를 다시 예약한다. DB가 중지된 동안 API 서비스도 이용할 수 없다.
+- 기존 `AWS_ARTIFACT_BUCKET` Actions 변수를 삭제한다. Terraform 변경을 적용하기 전에 배포용 `cinema-artifacts-<계정 ID>-ap-northeast-2` 버킷의 객체를 비워야 버킷 삭제가 가능하다. 상태용 `cinema-tfstate-<계정 ID>-ap-northeast-2` 버킷은 삭제하지 않는다.
 
 ## 범위와 제약
 

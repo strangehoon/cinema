@@ -1,5 +1,3 @@
-data "aws_caller_identity" "current" {}
-
 data "aws_ssm_parameter" "al2023" {
   name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 }
@@ -10,38 +8,6 @@ locals {
     mysql      = { type = "t3.small", ip = "10.20.1.20", disk = 30 }
     redis      = { type = "t3.micro", ip = "10.20.1.30", disk = 16 }
     monitoring = { type = "t3.small", ip = "10.20.1.40", disk = 20 }
-  }
-  artifact_bucket = "cinema-artifacts-${data.aws_caller_identity.current.account_id}-${var.region}"
-}
-
-resource "aws_s3_bucket" "artifacts" {
-  bucket = local.artifact_bucket
-}
-
-resource "aws_s3_bucket_public_access_block" "artifacts" {
-  bucket                  = aws_s3_bucket.artifacts.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "artifacts" {
-  bucket = aws_s3_bucket.artifacts.id
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_lifecycle_configuration" "artifacts" {
-  bucket = aws_s3_bucket.artifacts.id
-  rule {
-    id     = "delete-old-releases"
-    status = "Enabled"
-    filter { prefix = "releases/" }
-    expiration { days = 30 }
   }
 }
 
@@ -109,11 +75,6 @@ resource "aws_iam_role_policy" "node" {
           aws_ssm_parameter.mysql_user.arn,
           aws_ssm_parameter.grafana_admin.arn
         ]
-      },
-      {
-        Effect   = "Allow"
-        Action   = "s3:GetObject"
-        Resource = "${aws_s3_bucket.artifacts.arn}/releases/*"
       }
     ]
   })

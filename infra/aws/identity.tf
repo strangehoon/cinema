@@ -44,11 +44,6 @@ resource "aws_iam_role_policy" "github_deploy" {
           ["arn:aws:ssm:${var.region}::document/AWS-RunShellScript"],
           [for instance in aws_instance.node : instance.arn]
         )
-      },
-      {
-        Effect   = "Allow"
-        Action   = "s3:PutObject"
-        Resource = "${aws_s3_bucket.artifacts.arn}/releases/*"
       }
     ]
   })
