@@ -4,13 +4,15 @@ import com.example.db.repository.*;
 import com.example.querydsl.config.QuerydslConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(QuerydslConfig.class)
-public abstract class IntegrationRepositoryTest {
+public abstract class IntegrationRepositoryTest extends MySqlIntegrationTest {
 
     @Autowired
     protected ReservationRepository reservationRepository;

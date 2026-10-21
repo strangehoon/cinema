@@ -1,12 +1,12 @@
 package com.example.db.config;
 
+import com.example.config.MySqlTestDatabase;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import net.javacrumbs.shedlock.core.DefaultLockingTaskExecutor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -79,10 +79,8 @@ class SampleDataSeederTest {
     }
 
     private JdbcTemplate lockTable() {
-        var dataSource = new DriverManagerDataSource("jdbc:h2:mem:shedlock-" + System.nanoTime() + ";DB_CLOSE_DELAY=-1", "sa", "");
-        var jdbc = new JdbcTemplate(dataSource);
-        jdbc.execute("CREATE TABLE shedlock (name VARCHAR(64) PRIMARY KEY, lock_until TIMESTAMP(3) NOT NULL, " +
-                "locked_at TIMESTAMP(3) NOT NULL, locked_by VARCHAR(255) NOT NULL)");
+        var jdbc = MySqlTestDatabase.jdbcTemplate();
+        jdbc.update("DELETE FROM shedlock WHERE name = ?", "sample-data");
         return jdbc;
     }
 

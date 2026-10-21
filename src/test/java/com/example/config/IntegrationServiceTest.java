@@ -13,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @Import({EmbeddedRedisConfig.class, TestObjectMapperConfig.class})
 @SpringBootTest
-public abstract class IntegrationServiceTest {
+public abstract class IntegrationServiceTest extends MySqlIntegrationTest {
 
     @Autowired
     protected MovieRepository movieRepository;
