@@ -2,7 +2,9 @@ package com.example.db.repository;
 
 import com.example.db.entity.Reservation;
 import com.example.db.enums.ReservationStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
@@ -13,6 +15,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r WHERE r.screening.id = :screeningId AND r.screeningSeat.id IN :seatIds")
     List<Reservation> findByScreeningIdAndScreeningSeatId(@Param("screeningId") Long screeningId, @Param("seatIds") List<Long> seatIds);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Reservation r WHERE r.screening.id = :screeningId " +
+            "AND r.screeningSeat.id IN :seatIds ORDER BY r.screeningSeat.id ASC")
+    List<Reservation> findByScreeningIdAndScreeningSeatIdForUpdate(
+            @Param("screeningId") Long screeningId, @Param("seatIds") List<Long> seatIds);
 
     List<Reservation> findByPaymentId(Long paymentId);
     List<Reservation> findByScreeningId(Long screeningId);

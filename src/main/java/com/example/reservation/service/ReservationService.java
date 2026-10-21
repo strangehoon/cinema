@@ -36,15 +36,16 @@ public class ReservationService {
 
     public ReservationCreateServiceResponse createReserve(ReservationCreateServiceRequest request){
 
-        User user = userRepository.findById(request.getUserId())
+        User user = userRepository.findByIdForUpdate(request.getUserId())
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
         Screening screening = screeningRepository.findById(request.getScreeningId())
                 .orElseThrow(() -> new ScreeningException(SCREENING_NOT_FOUND));
         LocalDateTime now = LocalDateTime.now(clock);
         LocalDateTime expiresAt = ReservationPolicy.expiresAt(now, screening.getStartedAt());
         reservationValidator.validateSeatIds(request.getSeatIds());
+        List<Long> seatIdsInLockOrder = request.getSeatIds().stream().sorted().toList();
         List<Reservation> reservationsToUpdate = reservationRepository
-                .findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds());
+                .findByScreeningIdAndScreeningSeatIdForUpdate(request.getScreeningId(), seatIdsInLockOrder);
         reservationsToUpdate
                 .stream().map(Reservation::getPayment).filter(java.util.Objects::nonNull).distinct()
                 .filter(payment -> payment.getStatus() == PaymentStatus.READY && payment.getExpiresAt() != null
