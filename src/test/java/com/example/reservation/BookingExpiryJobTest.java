@@ -1,5 +1,6 @@
 package com.example.reservation;
 
+import com.example.config.MySqlTestDatabase;
 import com.example.reservation.service.BookingExpiryJob;
 import com.example.reservation.service.BookingService;
 import net.javacrumbs.shedlock.core.DefaultLockingTaskExecutor;
@@ -8,9 +9,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.util.concurrent.CountDownLatch;
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -80,16 +82,15 @@ class BookingExpiryJobTest {
     }
 
     private JdbcTemplate lockTable() {
-        var dataSource = new DriverManagerDataSource("jdbc:h2:mem:expiry-lock-" + System.nanoTime() + ";DB_CLOSE_DELAY=-1", "sa", "");
-        var jdbc = new JdbcTemplate(dataSource);
-        jdbc.execute("CREATE TABLE shedlock (name VARCHAR(64) PRIMARY KEY, lock_until TIMESTAMP(3) NOT NULL, " +
-                "locked_at TIMESTAMP(3) NOT NULL, locked_by VARCHAR(255) NOT NULL)");
+        var jdbc = MySqlTestDatabase.jdbcTemplate();
+        jdbc.update("DELETE FROM shedlock WHERE name = ?", "expire-bookings");
         return jdbc;
     }
 
     private BookingExpiryJob job(JdbcTemplate jdbc, BookingService bookings) {
         var provider = new JdbcTemplateLockProvider(JdbcTemplateLockProvider.Configuration.builder()
                 .withJdbcTemplate(jdbc).usingDbTime().build());
-        return new BookingExpiryJob(new DefaultLockingTaskExecutor(provider), bookings);
+        return new BookingExpiryJob(new DefaultLockingTaskExecutor(provider), bookings,
+                Clock.system(ZoneId.of("Asia/Seoul")));
     }
 }

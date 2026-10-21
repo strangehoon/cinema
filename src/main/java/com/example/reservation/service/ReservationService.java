@@ -2,7 +2,6 @@ package com.example.reservation.service;
 
 import com.example.db.entity.*;
 import com.example.db.enums.PaymentStatus;
-import com.example.db.enums.ReservationStatus;
 import com.example.db.repository.PaymentRepository;
 import com.example.db.repository.BookingSeatRepository;
 import com.example.db.repository.ReservationRepository;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import static com.example.screening.exception.ScreeningErrorCode.SCREENING_NOT_FOUND;
 import static com.example.user.exception.UserErrorCode.USER_NOT_FOUND;
@@ -32,6 +32,7 @@ public class ReservationService {
     private final BookingSeatRepository bookingSeatRepository;
     private final ReservationRepository reservationRepository;
     private final ScreeningRepository screeningRepository;
+    private final Clock clock;
 
     public ReservationCreateServiceResponse createReserve(ReservationCreateServiceRequest request){
 
@@ -39,9 +40,12 @@ public class ReservationService {
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
         Screening screening = screeningRepository.findById(request.getScreeningId())
                 .orElseThrow(() -> new ScreeningException(SCREENING_NOT_FOUND));
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         LocalDateTime expiresAt = ReservationPolicy.expiresAt(now, screening.getStartedAt());
-        reservationRepository.findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds())
+        reservationValidator.validateSeatIds(request.getSeatIds());
+        List<Reservation> reservationsToUpdate = reservationRepository
+                .findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds());
+        reservationsToUpdate
                 .stream().map(Reservation::getPayment).filter(java.util.Objects::nonNull).distinct()
                 .filter(payment -> payment.getStatus() == PaymentStatus.READY && payment.getExpiresAt() != null
                         && !payment.getExpiresAt().isAfter(now))
@@ -50,22 +54,7 @@ public class ReservationService {
                     reservationRepository.findByPaymentId(payment.getId()).forEach(Reservation::release);
                 });
         reservationValidator.validate(request);
-        List<Reservation> reservationsToUpdate = reservationRepository
-                .findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds());
-        if (reservationsToUpdate.size() != request.getSeatIds().size()) {
-            throw new com.example.reservation.exception.ReservationException(
-                    com.example.reservation.exception.ReservationErrorCode.RESERVATION_DATA_INCOMPLETE);
-        }
-        if (reservationsToUpdate.stream().anyMatch(reservation ->
-                !reservation.getScreeningSeat().getTheater().getId().equals(screening.getTheater().getId()))) {
-            throw new com.example.reservation.exception.ReservationException(
-                    com.example.reservation.exception.ReservationErrorCode.INVALID_SEAT);
-        }
-        if (reservationsToUpdate.stream().anyMatch(reservation ->
-                reservation.getStatus() != ReservationStatus.NONE)) {
-            throw new com.example.reservation.exception.ReservationException(
-                    com.example.reservation.exception.ReservationErrorCode.ALREADY_RESERVED_SEAT);
-        }
+        reservationValidator.validateInventory(screening, reservationsToUpdate, request.getSeatIds());
         reservationsToUpdate.forEach(reservation -> reservation.reserve(user));
 
         String orderId = UUID.randomUUID().toString();

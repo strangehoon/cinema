@@ -48,10 +48,10 @@ class BookingLifecycleTest extends IntegrationServiceTest {
             User user = userRepository.save(User.builder().name("관객").build());
             Theater theater = theaterRepository.save(Theater.builder().name("1관").build());
             Movie movie = movieRepository.save(Movie.builder().title("영화").genre(Genre.DRAMA)
-                    .rating(Rating.R_ALL).releasedDate(LocalDate.now()).runningTimeMin(100).build());
+                    .rating(Rating.R_ALL).releasedDate(LocalDate.now(clock)).runningTimeMin(100).build());
             Screening screening = screeningRepository.save(Screening.builder().movie(movie).theater(theater)
-                    .date(LocalDate.now().plusDays(1)).startedAt(LocalDateTime.now().plusDays(1))
-                    .endedAt(LocalDateTime.now().plusDays(1).plusHours(2)).build());
+                    .date(LocalDate.now(clock).plusDays(1)).startedAt(LocalDateTime.now(clock).plusDays(1))
+                    .endedAt(LocalDateTime.now(clock).plusDays(1).plusHours(2)).build());
             ScreeningSeat seat = screeningSeatRepository.save(ScreeningSeat.builder().theater(theater).row(1).col(1).build());
             Reservation inventory = reservationRepository.save(Reservation.builder().screening(screening)
                     .screeningSeat(seat).price(12000).status(ReservationStatus.NONE).build());
@@ -96,17 +96,17 @@ class BookingLifecycleTest extends IntegrationServiceTest {
             User user = userRepository.save(User.builder().name("관객").build());
             Theater theater = theaterRepository.save(Theater.builder().name("1관").build());
             Movie movie = movieRepository.save(Movie.builder().title("영화").genre(Genre.DRAMA)
-                    .rating(Rating.R_ALL).releasedDate(LocalDate.now()).runningTimeMin(100).build());
+                    .rating(Rating.R_ALL).releasedDate(LocalDate.now(clock)).runningTimeMin(100).build());
             Screening screening = screeningRepository.save(Screening.builder().movie(movie).theater(theater)
-                    .date(LocalDate.now().plusDays(1)).startedAt(LocalDateTime.now().plusDays(1))
-                    .endedAt(LocalDateTime.now().plusDays(1).plusHours(2)).build());
+                    .date(LocalDate.now(clock).plusDays(1)).startedAt(LocalDateTime.now(clock).plusDays(1))
+                    .endedAt(LocalDateTime.now(clock).plusDays(1).plusHours(2)).build());
             ScreeningSeat seat = screeningSeatRepository.save(ScreeningSeat.builder().theater(theater).row(1).col(1).build());
             reservationRepository.save(Reservation.builder().screening(screening).screeningSeat(seat)
                     .price(12000).status(ReservationStatus.NONE).build());
             String orderId = reservationService.createReserve(ReservationCreateServiceRequest.builder()
                     .userId(user.getId()).screeningId(screening.getId()).seatIds(List.of(seat.getId())).build()).getOrderId();
             Payment payment = paymentRepository.findByOrderId(orderId).orElseThrow();
-            payment.setExpiresAt(LocalDateTime.now().minusSeconds(1));
+            payment.setExpiresAt(LocalDateTime.now(clock).minusSeconds(1));
             paymentRepository.save(payment);
 
             // when
@@ -142,7 +142,7 @@ class BookingLifecycleTest extends IntegrationServiceTest {
             User owner = userRepository.save(User.builder().name("관객").build());
             Payment payment = paymentRepository.save(Payment.of("retry-order", "영화 1매", 10000L,
                     PaymentStatus.READY, owner));
-            payment.setExpiresAt(LocalDateTime.now().plusMinutes(2));
+            payment.setExpiresAt(LocalDateTime.now(clock).plusMinutes(2));
             paymentRepository.save(payment);
 
             // when & then
@@ -159,11 +159,11 @@ class BookingLifecycleTest extends IntegrationServiceTest {
             User owner = userRepository.save(User.builder().name("관객").build());
             Payment payment = paymentRepository.save(Payment.of("pending-order", "영화 1매", 10000L,
                     PaymentStatus.READY, owner));
-            payment.setExpiresAt(LocalDateTime.now().plusMinutes(2));
+            payment.setExpiresAt(LocalDateTime.now(clock).plusMinutes(2));
             paymentRepository.save(payment);
             bookings.startToss(payment.getOrderId(), owner.getId(), "key-1");
             Payment pending = paymentRepository.findByOrderId(payment.getOrderId()).orElseThrow();
-            pending.setExpiresAt(LocalDateTime.now().minusSeconds(1));
+            pending.setExpiresAt(LocalDateTime.now(clock).minusSeconds(1));
             paymentRepository.save(pending);
 
             // when
@@ -182,7 +182,7 @@ class BookingLifecycleTest extends IntegrationServiceTest {
             User owner = userRepository.save(User.builder().name("관객").build());
             Payment payment = paymentRepository.save(Payment.of("declined-order", "영화 1매", 10000L,
                     PaymentStatus.READY, owner));
-            payment.setExpiresAt(LocalDateTime.now().plusMinutes(2));
+            payment.setExpiresAt(LocalDateTime.now(clock).plusMinutes(2));
             paymentRepository.save(payment);
             bookings.startToss(payment.getOrderId(), owner.getId(), "key-1");
 

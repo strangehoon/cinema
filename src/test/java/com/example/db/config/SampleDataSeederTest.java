@@ -1,14 +1,16 @@
 package com.example.db.config;
 
+import com.example.config.MySqlTestDatabase;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import net.javacrumbs.shedlock.core.DefaultLockingTaskExecutor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.util.concurrent.CountDownLatch;
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -79,16 +81,15 @@ class SampleDataSeederTest {
     }
 
     private JdbcTemplate lockTable() {
-        var dataSource = new DriverManagerDataSource("jdbc:h2:mem:shedlock-" + System.nanoTime() + ";DB_CLOSE_DELAY=-1", "sa", "");
-        var jdbc = new JdbcTemplate(dataSource);
-        jdbc.execute("CREATE TABLE shedlock (name VARCHAR(64) PRIMARY KEY, lock_until TIMESTAMP(3) NOT NULL, " +
-                "locked_at TIMESTAMP(3) NOT NULL, locked_by VARCHAR(255) NOT NULL)");
+        var jdbc = MySqlTestDatabase.jdbcTemplate();
+        jdbc.update("DELETE FROM shedlock WHERE name = ?", "sample-data");
         return jdbc;
     }
 
     private SampleDataSeeder seeder(JdbcTemplate jdbc, SampleDataWriter writer) {
         var provider = new JdbcTemplateLockProvider(JdbcTemplateLockProvider.Configuration.builder()
                 .withJdbcTemplate(jdbc).usingDbTime().build());
-        return new SampleDataSeeder(new DefaultLockingTaskExecutor(provider), writer);
+        return new SampleDataSeeder(new DefaultLockingTaskExecutor(provider), writer,
+                Clock.system(ZoneId.of("Asia/Seoul")));
     }
 }

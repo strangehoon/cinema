@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 @Service
@@ -12,12 +13,14 @@ public class TossCheckoutService {
     private final BookingService bookings;
     private final TossGateway gateway;
     private final String mode;
+    private final Clock clock;
 
     public TossCheckoutService(BookingService bookings, TossGateway gateway,
-                               @Value("${payment.mode:mock}") String mode) {
+                               @Value("${payment.mode:mock}") String mode, Clock clock) {
         this.bookings = bookings;
         this.gateway = gateway;
         this.mode = mode;
+        this.clock = clock;
     }
 
     public BookingService.OrderView confirm(String orderId, Long userId, String paymentKey, long amount) {
@@ -26,7 +29,7 @@ public class TossCheckoutService {
         if (order.status().equals("DONE")) return order;
         if ((!order.status().equals("READY") && !order.status().equals("IN_PROGRESS")) ||
                 (order.status().equals("READY") && (order.expiresAt() == null ||
-                        !order.expiresAt().isAfter(LocalDateTime.now()))) || order.amount() != amount) {
+                        !order.expiresAt().isAfter(LocalDateTime.now(clock)))) || order.amount() != amount) {
             throw new IllegalArgumentException("결제 가능한 주문과 금액을 확인해 주세요.");
         }
         bookings.startToss(orderId, userId, paymentKey);
@@ -63,7 +66,7 @@ public class TossCheckoutService {
         if (paymentKey == null) return bookings.cancel(orderId, userId);
         requireToss();
         if (order.status().equals("DONE") && order.startsAt() != null &&
-                !order.startsAt().isAfter(LocalDateTime.now())) {
+                !order.startsAt().isAfter(LocalDateTime.now(clock))) {
             throw new IllegalArgumentException("상영이 시작된 예매는 취소할 수 없습니다.");
         }
         bookings.beginTossRefund(orderId, userId);

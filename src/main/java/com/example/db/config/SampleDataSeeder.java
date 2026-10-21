@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.Clock;
 
 @Component
 @Profile("!test")
@@ -18,6 +19,7 @@ import java.time.Instant;
 public class SampleDataSeeder implements ApplicationRunner {
     private final LockingTaskExecutor locks;
     private final SampleDataWriter writer;
+    private final Clock clock;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -31,6 +33,6 @@ public class SampleDataSeeder implements ApplicationRunner {
 
     private void seedOnce() {
         locks.executeWithLock((Runnable) writer::seed, new LockConfiguration(
-                Instant.now(), "sample-data", Duration.ofMinutes(10), Duration.ZERO));
+                Instant.now(clock), "sample-data", Duration.ofMinutes(10), Duration.ZERO));
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.Clock;
 
 @Component
 @Profile("!test")
@@ -16,10 +17,11 @@ import java.time.Instant;
 public class BookingExpiryJob {
     private final LockingTaskExecutor locks;
     private final BookingService bookings;
+    private final Clock clock;
 
     @Scheduled(fixedDelay = 10_000)
     public void run() {
         locks.executeWithLock((Runnable) bookings::expireDue, new LockConfiguration(
-                Instant.now(), "expire-bookings", Duration.ofMinutes(2), Duration.ZERO));
+                Instant.now(clock), "expire-bookings", Duration.ofMinutes(2), Duration.ZERO));
     }
 }

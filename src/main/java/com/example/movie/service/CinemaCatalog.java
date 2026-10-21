@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -27,6 +28,7 @@ public class CinemaCatalog {
     private final ScreeningRepository screenings;
     private final ReservationRepository reservations;
     private final MovieListCache listCache;
+    private final Clock clock;
 
     public record MovieView(Long id, String title, String genre, String rating, int runningTime,
                             String poster, List<ScreeningView> screenings) {}
@@ -72,7 +74,7 @@ public class CinemaCatalog {
 
     private MovieView movieView(Movie movie, Map<Long, int[]> counts) {
         List<ScreeningView> sessions = movie.getScreenings().stream()
-                .filter(s -> s.getStartedAt().isAfter(LocalDateTime.now()))
+                .filter(s -> s.getStartedAt().isAfter(LocalDateTime.now(clock)))
                 .map(s -> {
                     int[] stock = counts.getOrDefault(s.getId(), new int[] {0, 0});
                     return screeningView(s, stock[0], stock[1]);
