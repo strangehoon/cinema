@@ -28,11 +28,11 @@ class CinemaCatalogTest extends IntegrationServiceTest {
             // given
             Theater theater = theaterRepository.save(Theater.builder().name("1관").build());
             Movie movie = movieRepository.save(Movie.builder().title("테스트 영화")
-                    .rating(Rating.R_ALL).genre(Genre.DRAMA).releasedDate(LocalDate.now())
+                    .rating(Rating.R_ALL).genre(Genre.DRAMA).releasedDate(LocalDate.now(clock))
                     .runningTimeMin(100).thumbnailImage("poster.jpg").build());
             Screening screening = screeningRepository.save(Screening.builder().movie(movie).theater(theater)
-                    .date(LocalDate.now().plusDays(1)).startedAt(LocalDateTime.now().plusDays(1))
-                    .endedAt(LocalDateTime.now().plusDays(1).plusHours(2)).build());
+                    .date(LocalDate.now(clock).plusDays(1)).startedAt(LocalDateTime.now(clock).plusDays(1))
+                    .endedAt(LocalDateTime.now(clock).plusDays(1).plusHours(2)).build());
             ScreeningSeat a1 = screeningSeatRepository.save(ScreeningSeat.builder().theater(theater).row(1).col(1).build());
             ScreeningSeat a2 = screeningSeatRepository.save(ScreeningSeat.builder().theater(theater).row(1).col(2).build());
             reservationRepository.save(Reservation.builder().screening(screening).screeningSeat(a1)

@@ -31,7 +31,7 @@
 - 프론트: React·TypeScript·Vite, Nginx 정적 제공 및 `/api` 프록시.
 - 백엔드: Java 21·Spring Boot·JPA·QueryDSL, MySQL과 Flyway; Hibernate는 `validate`.
 - 기본 주소: `http://localhost:8080`; Java·Node 빌드는 Docker 내부에서 수행한다.
-- 서비스별 healthcheck와 시작 의존성을 설정하고 기존 클라우드 배포 구성을 제거한다.
+- 서비스별 healthcheck와 시작 의존성을 설정한다.
 - Redis는 영화 목록 검색 조건과 페이지 ID 캐시에 사용하고 Redisson·분산 락은 제거한다.
 - 캐시 키는 조회 조건·페이지 크기를 포함하며, Redis 장애 시 DB로 조회한다.
 - 샘플: 가상 영화 12편, 상영관 3개, 각 8행×10열, 좌석당 10,000원, 로컬 포스터.

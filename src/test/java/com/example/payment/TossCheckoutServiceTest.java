@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -16,7 +18,8 @@ import static org.mockito.Mockito.*;
 class TossCheckoutServiceTest {
     private final BookingService bookings = mock(BookingService.class);
     private final TossGateway gateway = mock(TossGateway.class);
-    private final TossCheckoutService service = new TossCheckoutService(bookings, gateway, "toss");
+    private final Clock clock = Clock.fixed(java.time.Instant.parse("2026-10-21T00:00:00Z"), ZoneId.of("Asia/Seoul"));
+    private final TossCheckoutService service = new TossCheckoutService(bookings, gateway, "toss", clock);
 
     @Nested
     @DisplayName("토스 테스트 결제")
@@ -26,8 +29,8 @@ class TossCheckoutServiceTest {
         void fail_amount_mismatch() {
             // given
             when(bookings.order("order-1", 7L)).thenReturn(new BookingService.OrderView(
-                    "order-1", "영화 1매", 10000, "READY", LocalDateTime.now().plusMinutes(2),
-                    LocalDateTime.now().plusDays(1), List.of("A1")));
+                    "order-1", "영화 1매", 10000, "READY", LocalDateTime.now(clock).plusMinutes(2),
+                    LocalDateTime.now(clock).plusDays(1), List.of("A1")));
 
             // when & then
             assertThatThrownBy(() -> service.confirm("order-1", 7L, "key-1", 1L))
@@ -40,8 +43,8 @@ class TossCheckoutServiceTest {
         void success() {
             // given
             when(bookings.order("order-1", 7L)).thenReturn(new BookingService.OrderView(
-                    "order-1", "영화 1매", 10000, "READY", LocalDateTime.now().plusMinutes(2),
-                    LocalDateTime.now().plusDays(1), List.of("A1")));
+                    "order-1", "영화 1매", 10000, "READY", LocalDateTime.now(clock).plusMinutes(2),
+                    LocalDateTime.now(clock).plusDays(1), List.of("A1")));
             when(gateway.confirm("key-1", "order-1", 10000L))
                     .thenReturn(new TossGateway.Result("key-1", "order-1", 10000L, "DONE"));
 
@@ -58,8 +61,8 @@ class TossCheckoutServiceTest {
         void fail_record_compensates() {
             // given
             when(bookings.order("order-1", 7L)).thenReturn(new BookingService.OrderView(
-                    "order-1", "영화 1매", 10000, "READY", LocalDateTime.now().plusMinutes(2),
-                    LocalDateTime.now().plusDays(1), List.of("A1")));
+                    "order-1", "영화 1매", 10000, "READY", LocalDateTime.now(clock).plusMinutes(2),
+                    LocalDateTime.now(clock).plusDays(1), List.of("A1")));
             when(gateway.confirm("key-1", "order-1", 10000L))
                     .thenReturn(new TossGateway.Result("key-1", "order-1", 10000L, "DONE"));
             when(bookings.finishToss("order-1", 7L, "key-1"))
@@ -77,8 +80,8 @@ class TossCheckoutServiceTest {
         void fail_provider_retries() {
             // given
             when(bookings.order("order-1", 7L)).thenReturn(new BookingService.OrderView(
-                    "order-1", "영화 1매", 10000, "READY", LocalDateTime.now().plusMinutes(2),
-                    LocalDateTime.now().plusDays(1), List.of("A1")));
+                    "order-1", "영화 1매", 10000, "READY", LocalDateTime.now(clock).plusMinutes(2),
+                    LocalDateTime.now(clock).plusDays(1), List.of("A1")));
             when(gateway.confirm("key-1", "order-1", 10000L))
                     .thenThrow(new org.springframework.web.client.HttpClientErrorException(
                             org.springframework.http.HttpStatus.BAD_REQUEST));
@@ -98,8 +101,8 @@ class TossCheckoutServiceTest {
         void fail_gateway_keeps_booking() {
             // given
             when(bookings.order("order-1", 7L)).thenReturn(new BookingService.OrderView(
-                    "order-1", "영화 1매", 10000, "DONE", LocalDateTime.now().plusMinutes(2),
-                    LocalDateTime.now().plusDays(1), List.of("A1")));
+                    "order-1", "영화 1매", 10000, "DONE", LocalDateTime.now(clock).plusMinutes(2),
+                    LocalDateTime.now(clock).plusDays(1), List.of("A1")));
             when(bookings.paymentKey("order-1", 7L)).thenReturn("key-1");
             doThrow(new IllegalStateException("refund failed")).when(gateway).cancel("key-1", "order-1");
 

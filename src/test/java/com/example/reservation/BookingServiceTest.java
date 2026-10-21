@@ -15,10 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class BookingServiceTest {
@@ -26,7 +29,8 @@ class BookingServiceTest {
     private final ReservationRepository reservations = mock(ReservationRepository.class);
     private final BookingSeatRepository bookingSeats = mock(BookingSeatRepository.class);
     private final ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
-    private final BookingService bookings = new BookingService(payments, reservations, bookingSeats, events);
+    private final Clock clock = Clock.fixed(java.time.Instant.parse("2026-10-21T00:00:00Z"), ZoneId.of("Asia/Seoul"));
+    private final BookingService bookings = new BookingService(payments, reservations, bookingSeats, events, clock);
 
     @Nested
     @DisplayName("예매 완료 알림")
@@ -38,7 +42,7 @@ class BookingServiceTest {
             User user = User.builder().name("관객").build();
             org.springframework.test.util.ReflectionTestUtils.setField(user, "id", 7L);
             Payment payment = Payment.of("order-1", "영화 2매", 20000L, PaymentStatus.READY, user);
-            payment.setExpiresAt(LocalDateTime.now().plusMinutes(2));
+            payment.setExpiresAt(LocalDateTime.now(clock).plusMinutes(2));
             when(payments.findByOrderId("order-1")).thenReturn(Optional.of(payment));
             when(reservations.findByPaymentId(payment.getId()))
                     .thenReturn(List.of(mock(Reservation.class), mock(Reservation.class)));
@@ -51,6 +55,26 @@ class BookingServiceTest {
             verify(events).publishEvent(captor.capture());
             assertThat(captor.getValue().getUserName()).isEqualTo("관객");
             assertThat(captor.getValue().getSeatCount()).isEqualTo(2);
+        }
+    }
+
+    @Nested
+    @DisplayName("결제 보유 시간")
+    class HoldDeadline {
+        @Test
+        @DisplayName("만료 시각과 같은 순간에는 결제할 수 없다")
+        void fail_at_expiry_boundary() {
+            // given
+            User user = User.builder().name("관객").build();
+            org.springframework.test.util.ReflectionTestUtils.setField(user, "id", 7L);
+            Payment payment = Payment.of("order-1", "영화 1매", 10000L, PaymentStatus.READY, user);
+            payment.setExpiresAt(LocalDateTime.now(clock));
+            when(payments.findByOrderId("order-1")).thenReturn(Optional.of(payment));
+
+            // when & then
+            assertThatThrownBy(() -> bookings.completeMock("order-1", 7L))
+                    .isInstanceOf(IllegalArgumentException.class);
+            verifyNoInteractions(events);
         }
     }
 }

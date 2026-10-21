@@ -45,6 +45,22 @@ class ReservationServiceTest extends IntegrationServiceTest {
     class ReserveSeats {
 
         @Test
+        @DisplayName("좌석 목록이 없으면 저장소 조회 전에 요청을 거절한다")
+        void fail_missing_seats() {
+            // given
+            User user = saveUser();
+            Theater theater = saveTheater();
+            Screening screening = saveScreening(saveMovie(), theater);
+            ReservationCreateServiceRequest request = ReservationCreateServiceRequest.builder()
+                    .userId(user.getId()).screeningId(screening.getId()).seatIds(null).build();
+
+            // when & then
+            assertThatThrownBy(() -> reservationService.createReserve(request))
+                    .isInstanceOf(ReservationException.class)
+                    .hasMessage("유효하지 않은 좌석이 포함되어 있습니다.");
+        }
+
+        @Test
         @DisplayName("정상적인 요청으로 좌석 예약에 성공한다")
         void success() {
             // given
@@ -136,7 +152,7 @@ class ReservationServiceTest extends IntegrationServiceTest {
                     .userId(first.getId()).screeningId(screening.getId())
                     .seatIds(List.of(seat.getId())).build());
             Payment expired = paymentRepository.findByOrderId(firstOrder.getOrderId()).orElseThrow();
-            expired.setExpiresAt(LocalDateTime.now().minusSeconds(1));
+            expired.setExpiresAt(LocalDateTime.now(clock).minusSeconds(1));
             paymentRepository.save(expired);
 
             // when
@@ -175,9 +191,9 @@ class ReservationServiceTest extends IntegrationServiceTest {
 
         private Screening saveScreening(Movie movie, Theater theater) {
             return screeningRepository.save(Screening.builder()
-                    .date(LocalDate.now().plusDays(1))
-                    .startedAt(LocalDateTime.now().plusDays(1))
-                    .endedAt(LocalDateTime.now().plusDays(1).plusHours(2))
+                    .date(LocalDate.now(clock).plusDays(1))
+                    .startedAt(LocalDateTime.now(clock).plusDays(1))
+                    .endedAt(LocalDateTime.now(clock).plusDays(1).plusHours(2))
                     .movie(movie)
                     .theater(theater)
                     .build());

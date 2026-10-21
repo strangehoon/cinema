@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.concurrent.CountDownLatch;
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -88,6 +90,7 @@ class BookingExpiryJobTest {
     private BookingExpiryJob job(JdbcTemplate jdbc, BookingService bookings) {
         var provider = new JdbcTemplateLockProvider(JdbcTemplateLockProvider.Configuration.builder()
                 .withJdbcTemplate(jdbc).usingDbTime().build());
-        return new BookingExpiryJob(new DefaultLockingTaskExecutor(provider), bookings);
+        return new BookingExpiryJob(new DefaultLockingTaskExecutor(provider), bookings,
+                Clock.system(ZoneId.of("Asia/Seoul")));
     }
 }

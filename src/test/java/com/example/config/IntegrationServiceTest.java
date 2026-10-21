@@ -9,11 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import java.time.Clock;
 
 @ActiveProfiles("test")
 @Import({EmbeddedRedisConfig.class, TestObjectMapperConfig.class})
 @SpringBootTest
 public abstract class IntegrationServiceTest extends MySqlIntegrationTest {
+
+    @Autowired
+    protected Clock clock;
 
     @Autowired
     protected MovieRepository movieRepository;

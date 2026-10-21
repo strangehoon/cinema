@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class BookingService {
     private final ReservationRepository reservations;
     private final BookingSeatRepository bookingSeats;
     private final ApplicationEventPublisher events;
+    private final Clock clock;
 
     public record OrderView(String orderId, String name, long amount, String status,
                             LocalDateTime expiresAt, LocalDateTime startsAt, List<String> seats) {}
@@ -34,13 +36,10 @@ public class BookingService {
         Payment payment = ownedPayment(orderId, userId);
         if (payment.getStatus() == PaymentStatus.DONE) return view(payment);
         if (payment.getStatus() != PaymentStatus.READY ||
-                (payment.getExpiresAt() != null && !payment.getExpiresAt().isAfter(LocalDateTime.now()))) {
+                (payment.getExpiresAt() != null && !payment.getExpiresAt().isAfter(LocalDateTime.now(clock)))) {
             throw new IllegalArgumentException("결제 가능한 주문이 아닙니다.");
         }
-        payment.setStatus(PaymentStatus.DONE);
-        List<Reservation> booked = reservations.findByPaymentId(payment.getId());
-        booked.forEach(r -> r.updateStatus(ReservationStatus.COMPLETED));
-        events.publishEvent(ReservationCompletedEvent.of(payment.getUser().getName(), booked.size()));
+        completeReservations(payment);
         return view(payment);
     }
 
@@ -48,7 +47,7 @@ public class BookingService {
     public void failMock(String orderId, Long userId) {
         Payment payment = ownedPayment(orderId, userId);
         if (payment.getStatus() != PaymentStatus.READY || payment.getExpiresAt() == null ||
-                !payment.getExpiresAt().isAfter(LocalDateTime.now())) {
+                !payment.getExpiresAt().isAfter(LocalDateTime.now(clock))) {
             throw new IllegalArgumentException("결제 가능한 주문이 아닙니다.");
         }
         throw new IllegalStateException("모의 결제가 실패했습니다. 보유 시간이 남아 있으면 다시 시도할 수 있습니다.");
@@ -61,7 +60,7 @@ public class BookingService {
             return view(payment);
         }
         if (payment.getStatus() != PaymentStatus.READY || payment.getExpiresAt() == null ||
-                !payment.getExpiresAt().isAfter(LocalDateTime.now())) {
+                !payment.getExpiresAt().isAfter(LocalDateTime.now(clock))) {
             throw new IllegalArgumentException("결제 가능한 주문이 아닙니다.");
         }
         payment.setPaymentKey(paymentKey);
@@ -76,10 +75,7 @@ public class BookingService {
         if (payment.getStatus() != PaymentStatus.IN_PROGRESS || !paymentKey.equals(payment.getPaymentKey())) {
             throw new IllegalArgumentException("결제 가능한 주문이 아닙니다.");
         }
-        payment.setStatus(PaymentStatus.DONE);
-        List<Reservation> booked = reservations.findByPaymentId(payment.getId());
-        booked.forEach(r -> r.updateStatus(ReservationStatus.COMPLETED));
-        events.publishEvent(ReservationCompletedEvent.of(payment.getUser().getName(), booked.size()));
+        completeReservations(payment);
         return view(payment);
     }
 
@@ -113,10 +109,7 @@ public class BookingService {
         if (payment.getStatus() != PaymentStatus.DONE || payment.getPaymentKey() == null) {
             throw new IllegalArgumentException("환불 가능한 결제가 아닙니다.");
         }
-        if (bookingSeats.findByOrderIdOrderById(payment.getOrder().getId()).stream()
-                .anyMatch(seat -> !seat.getStartsAt().isAfter(LocalDateTime.now()))) {
-            throw new IllegalArgumentException("상영이 시작된 예매는 취소할 수 없습니다.");
-        }
+        requireNotStarted(payment);
         payment.setStatus(PaymentStatus.REFUNDING);
         return view(payment);
     }
@@ -129,7 +122,7 @@ public class BookingService {
             throw new IllegalArgumentException("결제 확인 중인 주문이 아닙니다.");
         }
         payment.setStatus(PaymentStatus.CANCELED);
-        reservations.findByPaymentId(payment.getId()).forEach(Reservation::release);
+        releaseReservations(payment);
         return view(payment);
     }
 
@@ -138,11 +131,11 @@ public class BookingService {
         Payment payment = ownedPayment(orderId, userId);
         if (payment.getStatus() != PaymentStatus.IN_PROGRESS) return view(payment);
         payment.setPaymentKey(null);
-        if (payment.getExpiresAt() != null && payment.getExpiresAt().isAfter(LocalDateTime.now())) {
+        if (payment.getExpiresAt() != null && payment.getExpiresAt().isAfter(LocalDateTime.now(clock))) {
             payment.setStatus(PaymentStatus.READY);
         } else {
             payment.setStatus(PaymentStatus.EXPIRED);
-            reservations.findByPaymentId(payment.getId()).forEach(Reservation::release);
+            releaseReservations(payment);
         }
         return view(payment);
     }
@@ -153,18 +146,14 @@ public class BookingService {
         if (payment.getStatus() == PaymentStatus.CANCELED) return view(payment);
         if (payment.getStatus() == PaymentStatus.READY) {
             payment.setStatus(PaymentStatus.CANCELED);
-            reservations.findByPaymentId(payment.getId()).forEach(Reservation::release);
+            releaseReservations(payment);
             return view(payment);
         }
         if (payment.getStatus() != PaymentStatus.DONE && payment.getStatus() != PaymentStatus.REFUNDING)
             throw new IllegalArgumentException("결제 완료된 주문만 취소할 수 있습니다.");
-        List<BookingSeat> seats = bookingSeats.findByOrderIdOrderById(payment.getOrder().getId());
-        if (payment.getStatus() == PaymentStatus.DONE &&
-                seats.stream().anyMatch(seat -> !seat.getStartsAt().isAfter(LocalDateTime.now()))) {
-            throw new IllegalArgumentException("상영이 시작된 예매는 취소할 수 없습니다.");
-        }
+        if (payment.getStatus() == PaymentStatus.DONE) requireNotStarted(payment);
         payment.setStatus(PaymentStatus.CANCELED);
-        reservations.findByPaymentId(payment.getId()).forEach(Reservation::release);
+        releaseReservations(payment);
         return view(payment);
     }
 
@@ -178,10 +167,28 @@ public class BookingService {
 
     @Transactional
     public void expireDue() {
-        payments.findByStatusAndExpiresAtBefore(PaymentStatus.READY, LocalDateTime.now()).forEach(payment -> {
+        payments.findByStatusAndExpiresAtBefore(PaymentStatus.READY, LocalDateTime.now(clock)).forEach(payment -> {
             payment.setStatus(PaymentStatus.EXPIRED);
-            reservations.findByPaymentId(payment.getId()).forEach(Reservation::release);
+            releaseReservations(payment);
         });
+    }
+
+    private void completeReservations(Payment payment) {
+        payment.setStatus(PaymentStatus.DONE);
+        List<Reservation> booked = reservations.findByPaymentId(payment.getId());
+        booked.forEach(reservation -> reservation.updateStatus(ReservationStatus.COMPLETED));
+        events.publishEvent(ReservationCompletedEvent.of(payment.getUser().getName(), booked.size()));
+    }
+
+    private void releaseReservations(Payment payment) {
+        reservations.findByPaymentId(payment.getId()).forEach(Reservation::release);
+    }
+
+    private void requireNotStarted(Payment payment) {
+        if (bookingSeats.findByOrderIdOrderById(payment.getOrder().getId()).stream()
+                .anyMatch(seat -> !seat.getStartsAt().isAfter(LocalDateTime.now(clock)))) {
+            throw new IllegalArgumentException("상영이 시작된 예매는 취소할 수 없습니다.");
+        }
     }
 
     private Payment ownedPayment(String orderId, Long userId) {

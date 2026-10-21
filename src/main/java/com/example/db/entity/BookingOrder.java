@@ -43,6 +43,19 @@ public class BookingOrder extends BaseEntity {
         this.user = user;
     }
 
-    public void setStatus(PaymentStatus status) { this.status = status; }
+    public void setStatus(PaymentStatus next) {
+        if (status == next) return;
+        boolean allowed = switch (status) {
+            case READY -> next == PaymentStatus.IN_PROGRESS || next == PaymentStatus.DONE
+                    || next == PaymentStatus.CANCELED || next == PaymentStatus.EXPIRED;
+            case IN_PROGRESS -> next == PaymentStatus.READY || next == PaymentStatus.DONE
+                    || next == PaymentStatus.CANCELED || next == PaymentStatus.EXPIRED;
+            case DONE -> next == PaymentStatus.REFUNDING || next == PaymentStatus.CANCELED;
+            case REFUNDING -> next == PaymentStatus.CANCELED;
+            default -> false;
+        };
+        if (!allowed) throw new IllegalStateException("허용되지 않는 결제 상태 전이입니다: " + status + " -> " + next);
+        status = next;
+    }
     public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
 }

@@ -12,10 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Component
@@ -29,6 +29,7 @@ public class SampleDataWriter {
     private final JdbcTemplate jdbc;
     private final UserRepository users;
     private final PasswordEncoder passwords;
+    private final Clock clock;
 
     private static final String[] TITLES = {
             "파도의 기록", "여름의 끝", "새벽의 도시", "우리가 남긴 빛", "열두 번째 밤", "궤도의 밖",
@@ -41,7 +42,7 @@ public class SampleDataWriter {
 
     @Transactional
     public void seed() {
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate today = LocalDate.now(clock);
         if (users.findByEmail("demo@cinema.local").isEmpty()) {
             users.save(User.builder().name("체험 관객").email("demo@cinema.local")
                     .passwordHash(passwords.encode("cinema1234")).build());
@@ -85,7 +86,7 @@ public class SampleDataWriter {
                                 statement.setInt(1, 10000);
                                 statement.setLong(2, seat.getId());
                                 statement.setLong(3, screening.getId());
-                                Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+                                Timestamp now = Timestamp.valueOf(LocalDateTime.now(clock));
                                 statement.setTimestamp(4, now);
                                 statement.setTimestamp(5, now);
                             });

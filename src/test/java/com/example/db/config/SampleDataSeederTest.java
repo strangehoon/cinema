@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.concurrent.CountDownLatch;
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -87,6 +89,7 @@ class SampleDataSeederTest {
     private SampleDataSeeder seeder(JdbcTemplate jdbc, SampleDataWriter writer) {
         var provider = new JdbcTemplateLockProvider(JdbcTemplateLockProvider.Configuration.builder()
                 .withJdbcTemplate(jdbc).usingDbTime().build());
-        return new SampleDataSeeder(new DefaultLockingTaskExecutor(provider), writer);
+        return new SampleDataSeeder(new DefaultLockingTaskExecutor(provider), writer,
+                Clock.system(ZoneId.of("Asia/Seoul")));
     }
 }
