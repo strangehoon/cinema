@@ -104,7 +104,7 @@ jobs:
           docker run --rm \
             -v "$PWD/deploy/aws/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
             -v "$PWD/deploy/aws/monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro" \
-            prom/prometheus:v3.5.0 promtool check config /etc/prometheus/prometheus.yml
+            --entrypoint=promtool prom/prometheus:v3.5.0 check config /etc/prometheus/prometheus.yml
           docker run --rm \
             -v "$PWD/deploy/aws/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro" \
             --entrypoint=amtool prom/alertmanager:v0.34.1 check-config /etc/alertmanager/alertmanager.yml
