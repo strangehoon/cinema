@@ -17,7 +17,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByScreeningIdAndScreeningSeatId(@Param("screeningId") Long screeningId, @Param("seatIds") List<Long> seatIds);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT r FROM Reservation r WHERE r.screening.id = :screeningId " +
+    @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.payment " +
+            "WHERE r.screening.id = :screeningId " +
             "AND r.screeningSeat.id IN :seatIds ORDER BY r.screeningSeat.id ASC")
     List<Reservation> findByScreeningIdAndScreeningSeatIdForUpdate(
             @Param("screeningId") Long screeningId, @Param("seatIds") List<Long> seatIds);
