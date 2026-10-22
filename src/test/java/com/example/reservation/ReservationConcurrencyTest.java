@@ -65,8 +65,9 @@ class ReservationConcurrencyTest extends IntegrationServiceTest {
             // given
             User firstUser = saveUser("first");
             User secondUser = saveUser("second");
-            Screening screening = saveScreening();
-            ScreeningSeat seat = saveSeats(screening.getTheater(), 1).getFirst();
+            Theater theater = saveTheater();
+            Screening screening = saveScreening(theater);
+            ScreeningSeat seat = saveSeats(theater, 1).getFirst();
             Reservation inventory = saveInventory(screening, List.of(seat)).getFirst();
 
             // when
@@ -87,8 +88,9 @@ class ReservationConcurrencyTest extends IntegrationServiceTest {
         void success_same_user_concurrent_requests_respect_three_seat_limit() throws Exception {
             // given
             User user = saveUser("same-user");
-            Screening screening = saveScreening();
-            List<ScreeningSeat> seats = saveSeats(screening.getTheater(), 4);
+            Theater theater = saveTheater();
+            Screening screening = saveScreening(theater);
+            List<ScreeningSeat> seats = saveSeats(theater, 4);
             saveInventory(screening, seats);
             reserve(user, screening, seats.get(0), seats.get(1));
 
@@ -150,7 +152,8 @@ class ReservationConcurrencyTest extends IntegrationServiceTest {
                 return future.get(10, TimeUnit.SECONDS);
             } catch (java.util.concurrent.ExecutionException exception) {
                 if (exception.getCause() instanceof ReservationException) return false;
-                throw new AssertionError(exception.getCause());
+                throw new AssertionError("Concurrent reservation failed unexpectedly: " + exception.getCause(),
+                        exception.getCause());
             } catch (Exception exception) {
                 throw new AssertionError(exception);
             }
@@ -173,8 +176,11 @@ class ReservationConcurrencyTest extends IntegrationServiceTest {
             return userRepository.save(User.builder().name(name).build());
         }
 
-        private Screening saveScreening() {
-            Theater theater = theaterRepository.save(Theater.builder().name("theater").build());
+        private Theater saveTheater() {
+            return theaterRepository.save(Theater.builder().name("theater").build());
+        }
+
+        private Screening saveScreening(Theater theater) {
             Movie movie = movieRepository.save(Movie.builder()
                     .title("movie")
                     .rating(Rating.R_12)
