@@ -8,6 +8,7 @@ import com.example.db.enums.Rating;
 import com.example.db.enums.ReservationStatus;
 import com.example.reservation.dto.request.ReservationCreateServiceRequest;
 import com.example.reservation.dto.response.ReservationCreateServiceResponse;
+import com.example.reservation.service.BookingService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,6 +27,9 @@ class ReservationServiceTest extends IntegrationServiceTest {
 
     @Autowired
     private BookingSeatRepository bookingSeatRepository;
+
+    @Autowired
+    private BookingService bookingService;
 
     @AfterEach
     void tearDown() {
@@ -139,8 +143,8 @@ class ReservationServiceTest extends IntegrationServiceTest {
         }
 
         @Test
-        @DisplayName("만료된 보유 좌석은 예약 요청에서 즉시 해제하고 다시 예약한다")
-        void success_reuse_expired_hold() {
+        @DisplayName("만료된 보유 좌석은 스케줄러가 해제한 뒤 다시 예약할 수 있다")
+        void success_reuse_expired_hold_after_scheduler() {
             // given
             User first = saveUser();
             User next = userRepository.save(User.builder().name("next").build());
@@ -155,15 +159,27 @@ class ReservationServiceTest extends IntegrationServiceTest {
             expired.setExpiresAt(LocalDateTime.now(clock).minusSeconds(1));
             paymentRepository.save(expired);
 
-            // when
-            var nextOrder = reservationService.createReserve(ReservationCreateServiceRequest.builder()
+            // when & then
+            var nextRequest = ReservationCreateServiceRequest.builder()
                     .userId(next.getId()).screeningId(screening.getId())
-                    .seatIds(List.of(seat.getId())).build());
+                    .seatIds(List.of(seat.getId())).build();
+            assertThatThrownBy(() -> reservationService.createReserve(nextRequest))
+                    .isInstanceOf(ReservationException.class);
+            assertThat(paymentRepository.findByOrderId(firstOrder.getOrderId()).orElseThrow().getStatus())
+                    .isEqualTo(PaymentStatus.READY);
+            assertThat(reservationRepository.findByScreeningId(screening.getId()))
+                    .anyMatch(reservation -> reservation.getStatus() == ReservationStatus.IN_PROGRESS);
+
+            bookingService.expireDue();
+            var nextOrder = reservationService.createReserve(nextRequest);
 
             // then
             assertThat(nextOrder.getOrderId()).isNotEqualTo(firstOrder.getOrderId());
             assertThat(paymentRepository.findByOrderId(firstOrder.getOrderId()).orElseThrow().getStatus())
                     .isEqualTo(PaymentStatus.EXPIRED);
+            assertThat(reservationRepository.findByPaymentId(
+                    paymentRepository.findByOrderId(nextOrder.getOrderId()).orElseThrow().getId()))
+                    .allMatch(reservation -> reservation.getStatus() == ReservationStatus.IN_PROGRESS);
         }
 
         private User saveUser() {

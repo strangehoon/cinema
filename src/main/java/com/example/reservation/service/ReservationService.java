@@ -2,10 +2,10 @@ package com.example.reservation.service;
 
 import com.example.db.entity.*;
 import com.example.db.enums.PaymentStatus;
-import com.example.db.repository.PaymentRepository;
 import com.example.db.repository.BookingSeatRepository;
 import com.example.db.repository.ReservationRepository;
 import com.example.db.repository.ScreeningRepository;
+import com.example.db.repository.PaymentRepository;
 import com.example.reservation.dto.request.ReservationCreateServiceRequest;
 import com.example.reservation.dto.response.ReservationCreateServiceResponse;
 import com.example.db.repository.UserRepository;
@@ -36,23 +36,16 @@ public class ReservationService {
 
     public ReservationCreateServiceResponse createReserve(ReservationCreateServiceRequest request){
 
-        User user = userRepository.findById(request.getUserId())
+        User user = userRepository.findByIdForUpdate(request.getUserId())
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
         Screening screening = screeningRepository.findById(request.getScreeningId())
                 .orElseThrow(() -> new ScreeningException(SCREENING_NOT_FOUND));
         LocalDateTime now = LocalDateTime.now(clock);
         LocalDateTime expiresAt = ReservationPolicy.expiresAt(now, screening.getStartedAt());
         reservationValidator.validateSeatIds(request.getSeatIds());
+        List<Long> seatIdsInLockOrder = request.getSeatIds().stream().sorted().toList();
         List<Reservation> reservationsToUpdate = reservationRepository
-                .findByScreeningIdAndScreeningSeatId(request.getScreeningId(), request.getSeatIds());
-        reservationsToUpdate
-                .stream().map(Reservation::getPayment).filter(java.util.Objects::nonNull).distinct()
-                .filter(payment -> payment.getStatus() == PaymentStatus.READY && payment.getExpiresAt() != null
-                        && !payment.getExpiresAt().isAfter(now))
-                .forEach(payment -> {
-                    payment.setStatus(PaymentStatus.EXPIRED);
-                    reservationRepository.findByPaymentId(payment.getId()).forEach(Reservation::release);
-                });
+                .findByScreeningIdAndScreeningSeatIdForUpdate(request.getScreeningId(), seatIdsInLockOrder);
         reservationValidator.validate(request);
         reservationValidator.validateInventory(screening, reservationsToUpdate, request.getSeatIds());
         reservationsToUpdate.forEach(reservation -> reservation.reserve(user));
