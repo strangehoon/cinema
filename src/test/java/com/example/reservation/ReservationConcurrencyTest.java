@@ -152,6 +152,7 @@ class ReservationConcurrencyTest extends IntegrationServiceTest {
                 return future.get(10, TimeUnit.SECONDS);
             } catch (java.util.concurrent.ExecutionException exception) {
                 if (exception.getCause() instanceof ReservationException) return false;
+                System.err.println("Unexpected concurrent reservation failure: " + exception.getCause());
                 throw new AssertionError("Concurrent reservation failed unexpectedly: " + exception.getCause(),
                         exception.getCause());
             } catch (Exception exception) {
