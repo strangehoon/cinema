@@ -2,10 +2,10 @@ package com.example.reservation.service;
 
 import com.example.db.entity.*;
 import com.example.db.enums.PaymentStatus;
-import com.example.db.repository.PaymentRepository;
 import com.example.db.repository.BookingSeatRepository;
 import com.example.db.repository.ReservationRepository;
 import com.example.db.repository.ScreeningRepository;
+import com.example.db.repository.PaymentRepository;
 import com.example.reservation.dto.request.ReservationCreateServiceRequest;
 import com.example.reservation.dto.response.ReservationCreateServiceResponse;
 import com.example.db.repository.UserRepository;
@@ -46,13 +46,6 @@ public class ReservationService {
         List<Long> seatIdsInLockOrder = request.getSeatIds().stream().sorted().toList();
         List<Reservation> reservationsToUpdate = reservationRepository
                 .findByScreeningIdAndScreeningSeatIdForUpdate(request.getScreeningId(), seatIdsInLockOrder);
-        // Scalar lookup avoids initializing a payment proxy created by a transaction we waited on.
-        List<Long> expiredPaymentIds = reservationRepository.findExpiredPaymentIds(
-                reservationsToUpdate.stream().map(Reservation::getId).toList(), PaymentStatus.READY, now);
-        paymentRepository.findAllById(expiredPaymentIds).forEach(payment -> {
-            payment.setStatus(PaymentStatus.EXPIRED);
-            reservationRepository.findByPaymentId(payment.getId()).forEach(Reservation::release);
-        });
         reservationValidator.validate(request);
         reservationValidator.validateInventory(screening, reservationsToUpdate, request.getSeatIds());
         reservationsToUpdate.forEach(reservation -> reservation.reserve(user));

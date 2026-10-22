@@ -1,14 +1,12 @@
 package com.example.db.repository;
 
 import com.example.db.entity.Reservation;
-import com.example.db.enums.PaymentStatus;
 import com.example.db.enums.ReservationStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
@@ -23,13 +21,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             "AND r.screeningSeat.id IN :seatIds ORDER BY r.screeningSeat.id ASC")
     List<Reservation> findByScreeningIdAndScreeningSeatIdForUpdate(
             @Param("screeningId") Long screeningId, @Param("seatIds") List<Long> seatIds);
-
-    @Query("SELECT DISTINCT p.id FROM Reservation r JOIN r.payment p " +
-            "WHERE r.id IN :reservationIds AND p.order.status = :status " +
-            "AND p.order.expiresAt IS NOT NULL AND p.order.expiresAt <= :now")
-    List<Long> findExpiredPaymentIds(@Param("reservationIds") List<Long> reservationIds,
-                                     @Param("status") PaymentStatus status,
-                                     @Param("now") LocalDateTime now);
 
     List<Reservation> findByPaymentId(Long paymentId);
     List<Reservation> findByScreeningId(Long screeningId);
