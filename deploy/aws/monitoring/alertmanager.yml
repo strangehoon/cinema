@@ -1,0 +1,13 @@
+route:
+  receiver: n8n-ai-analysis
+  group_by: [alertname, service, instance, version]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 4h
+
+receivers:
+  - name: n8n-ai-analysis
+    webhook_configs:
+      - url: http://n8n:5678/webhook/cinema-ai-alerts
+        send_resolved: true
+        max_alerts: 10

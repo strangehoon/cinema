@@ -1,0 +1,46 @@
+logging {
+  level = "info"
+}
+
+local.file_match "cinema_docker_logs" {
+  path_targets = [{
+    __path__ = "/var/lib/docker/containers/*/*-json.log",
+    job     = "cinema-docker",
+    host    = constants.hostname,
+  }]
+}
+
+loki.source.file "cinema_docker_logs" {
+  targets    = local.file_match.cinema_docker_logs.targets
+  forward_to = [loki.process.cinema.receiver]
+}
+
+loki.process "cinema" {
+  forward_to = [loki.write.monitoring.receiver]
+
+  stage.docker {}
+
+  stage.multiline {
+    firstline     = `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}`
+    max_lines     = 100
+    max_wait_time = "3s"
+  }
+
+  stage.regex {
+    expression = `^\S+ level=(?P<level>ERROR|WARN|INFO|DEBUG|TRACE)\s+service=(?P<service>[a-z0-9-]+) version=(?P<version>[A-Za-z0-9._-]+) requestId=(?P<requestId>[A-Za-z0-9-]+) logger=\S+ - `
+  }
+
+  stage.labels {
+    values = {
+      level   = "level",
+      service = "service",
+      version = "version",
+    }
+  }
+}
+
+loki.write "monitoring" {
+  endpoint {
+    url = "http://10.20.1.40:3100/loki/api/v1/push"
+  }
+}

@@ -30,10 +30,16 @@ spring:
 server:
   port: ${SERVER_PORT:8081}
 
+app:
+  version: ${APP_VERSION:local}
+
 management:
   health:
     redis:
       enabled: false
+  metrics:
+    tags:
+      version: ${app.version:local}
 
 psp:
   toss:

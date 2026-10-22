@@ -83,6 +83,14 @@ resource "aws_vpc_security_group_ingress_rule" "app_metrics" {
   ip_protocol                  = "tcp"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "loki_from_app" {
+  security_group_id            = aws_security_group.node["monitoring"].id
+  referenced_security_group_id = aws_security_group.node["app"].id
+  from_port                    = 3100
+  to_port                      = 3100
+  ip_protocol                  = "tcp"
+}
+
 resource "aws_vpc_security_group_ingress_rule" "node_metrics" {
   for_each                     = aws_security_group.node
   security_group_id            = each.value.id

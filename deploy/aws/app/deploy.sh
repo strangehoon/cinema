@@ -12,7 +12,10 @@ mkdir -p "$app_dir/nginx"
 cp "$cinema_home/release/app/compose.yml" "$app_dir/compose.yml"
 cp "$cinema_home/release/app/nginx.conf.template" "$app_dir/nginx.conf.template"
 cp "$cinema_home/release/app/web.conf" "$app_dir/web.conf"
+cp "$cinema_home/release/app/alloy.alloy" "$app_dir/alloy.alloy"
 cd "$app_dir"
+
+docker compose up -d alloy
 
 active=""
 if [[ -f active-color ]]; then active="$(cat active-color)"; fi
@@ -37,6 +40,7 @@ else
 fi
 cat >.env <<EOF
 DB_PASSWORD=$password
+APP_VERSION=$sha
 API_BLUE_IMAGE=$API_BLUE_IMAGE
 WEB_BLUE_IMAGE=$WEB_BLUE_IMAGE
 API_GREEN_IMAGE=$API_GREEN_IMAGE
