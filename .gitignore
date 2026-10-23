@@ -368,3 +368,10 @@ web/dist/
 web/test-results/
 web/playwright-report/
 web/*.tsbuildinfo
+
+# Terraform local data and sensitive plans
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars

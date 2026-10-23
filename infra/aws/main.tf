@@ -26,11 +26,6 @@ resource "random_password" "grafana_admin" {
   special = false
 }
 
-resource "random_password" "n8n_encryption_key" {
-  length  = 64
-  special = false
-}
-
 resource "aws_ssm_parameter" "mysql_root" {
   name  = "/cinema/mysql-root-password"
   type  = "SecureString"
@@ -49,24 +44,8 @@ resource "aws_ssm_parameter" "grafana_admin" {
   value = random_password.grafana_admin.result
 }
 
-resource "aws_ssm_parameter" "n8n_encryption_key" {
-  name  = "/cinema/n8n-encryption-key"
-  type  = "SecureString"
-  value = random_password.n8n_encryption_key.result
-}
-
-locals {
-  node_parameter_arns = {
-    app        = [aws_ssm_parameter.mysql_user.arn]
-    mysql      = [aws_ssm_parameter.mysql_user.arn, aws_ssm_parameter.mysql_root.arn]
-    redis      = []
-    monitoring = [aws_ssm_parameter.grafana_admin.arn, aws_ssm_parameter.n8n_encryption_key.arn]
-  }
-}
-
 resource "aws_iam_role" "node" {
-  for_each = local.node_parameter_arns
-  name     = "cinema-${each.key}-ec2"
+  name = "cinema-ec2"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -78,31 +57,32 @@ resource "aws_iam_role" "node" {
 }
 
 resource "aws_iam_role_policy_attachment" "ssm" {
-  for_each   = aws_iam_role.node
-  role       = each.value.name
+  role       = aws_iam_role.node.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role_policy" "node" {
-  for_each = { for role_name, arns in local.node_parameter_arns : role_name => arns if length(arns) > 0 }
-  name     = "cinema-${each.key}-parameter-read"
-  role     = aws_iam_role.node[each.key].id
+  name = "cinema-service-read"
+  role = aws_iam_role.node.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = ["ssm:GetParameter", "ssm:GetParameters"]
-        Resource = each.value
+        Effect = "Allow"
+        Action = ["ssm:GetParameter", "ssm:GetParameters"]
+        Resource = [
+          aws_ssm_parameter.mysql_root.arn,
+          aws_ssm_parameter.mysql_user.arn,
+          aws_ssm_parameter.grafana_admin.arn
+        ]
       }
     ]
   })
 }
 
 resource "aws_iam_instance_profile" "node" {
-  for_each = aws_iam_role.node
-  name     = "cinema-${each.key}-ec2"
-  role     = each.value.name
+  name = "cinema-ec2"
+  role = aws_iam_role.node.name
 }
 
 resource "aws_instance" "node" {
@@ -113,7 +93,7 @@ resource "aws_instance" "node" {
   private_ip                           = each.value.ip
   associate_public_ip_address          = true
   vpc_security_group_ids               = [aws_security_group.node[each.key].id]
-  iam_instance_profile                 = aws_iam_instance_profile.node[each.key].name
+  iam_instance_profile                 = aws_iam_instance_profile.node.name
   instance_initiated_shutdown_behavior = "stop"
   user_data                            = file("${path.module}/user-data.sh")
   user_data_replace_on_change          = false
@@ -123,6 +103,12 @@ resource "aws_instance" "node" {
     volume_size           = each.value.disk
     encrypted             = true
     delete_on_termination = true
+  }
+
+  # Preserve existing EC2 root volumes when the latest AL2023 AMI or
+  # provider-reported public IP setting changes. Replace nodes explicitly.
+  lifecycle {
+    ignore_changes = [ami, associate_public_ip_address]
   }
 
   tags = { Name = "cinema-${each.key}", Role = each.key }

@@ -40,7 +40,7 @@ terraform apply -var='budget_email=본인@example.com'
 - GitHub Actions의 `deploy` 작업에서 각 서버의 SSM 명령 결과를 확인한다. 초기 배포 실패 시 앱 주소는 아직 열리지 않으며, 이후 배포 실패 시 Nginx는 이전 색상을 유지한다.
 - 성공 후 문제가 발견되면 SSM Run Command로 앱 EC2에서 `bash /opt/cinema/release/app/rollback.sh`를 실행한다. 이전 색상의 이미지와 DB 스키마가 새 버전과 호환되어야 한다. DB 마이그레이션은 Blue/Green 공존과 롤백을 고려해 이전 API와도 호환되게 작성한다.
 - Grafana는 SSM Session Manager의 `AWS-StartPortForwardingSession`으로 모니터링 EC2의 3000번 포트를 로컬에 전달해 `http://localhost:3000`에서 본다. 관리자 비밀번호는 Parameter Store의 `/cinema/grafana-admin-password`에 있다.
-- n8n 편집기는 같은 방식으로 모니터링 EC2의 5678번 포트를 로컬로 전달해 `http://localhost:5678`에서 연다. 포트는 EC2의 loopback에만 바인딩되어 보안 그룹에서 공개하지 않는다. n8n 암호화 키는 `/cinema/n8n-encryption-key` SecureString에 있고, EC2별 IAM 역할로 필요한 파라미터만 읽을 수 있다.
+- n8n 편집기는 같은 방식으로 모니터링 EC2의 5678번 포트를 로컬로 전달해 `http://localhost:5678`에서 연다. 포트는 EC2의 loopback에만 바인딩되어 보안 그룹에서 공개하지 않는다. n8n 암호화 키는 최초 설치 시 생성해 모니터링 EC2의 권한 제한된 `.env`에 보관하고 재배포 때 재사용한다.
 - 필요할 때 EC2를 수동 기동할 수 있다. 각 인스턴스는 부팅 시 4시간 자동 중지를 다시 예약한다. DB가 중지된 동안 API 서비스도 이용할 수 없다.
 - 기존 `AWS_ARTIFACT_BUCKET` Actions 변수를 삭제한다. Terraform 변경을 적용하기 전에 배포용 `cinema-artifacts-<계정 ID>-ap-northeast-2` 버킷의 객체를 비워야 버킷 삭제가 가능하다. 상태용 `cinema-tfstate-<계정 ID>-ap-northeast-2` 버킷은 삭제하지 않는다.
 
@@ -57,7 +57,7 @@ terraform apply -var='budget_email=본인@example.com'
 - Prometheus는 API·EC2·MySQL·Redis 지표를 수집하고 7일 또는 5GB까지 보관한다. Alertmanager는 장애 알림을 그룹화해 내부 n8n webhook으로 전달한다.
 - Alloy는 앱 EC2의 Docker JSON 로그 파일을 읽어 모니터링 EC2의 Loki에 보낸다. Docker 로그는 컨테이너마다 10MB 파일 3개로 회전하고 Loki는 로그를 7일 보관한다.
 - Grafana는 Prometheus, Loki, Alertmanager를 데이터 소스로 사용한다. 기존 대시보드는 Grafana 볼륨에 보존된다.
-- n8n은 SQLite 데이터와 암호화된 자격 증명을 Docker 볼륨에 보관한다. 암호화 키는 SecureString에 저장하며 재배포 때 바뀌지 않는다. 실행 성공·실패 본문은 SQLite에 남기지 않도록 설정한다.
+- n8n은 SQLite 데이터와 암호화된 자격 증명을 Docker 볼륨에 보관한다. 암호화 키는 모니터링 EC2의 `/opt/cinema/monitoring/.env`에 보관하며 재배포 때 바뀌지 않는다. 실행 성공·실패 본문은 SQLite에 남기지 않도록 설정한다.
 - 모니터링 EC2는 `t3.small`, 20GB를 유지한다. Compose의 메모리 상한 합은 약 1.5GB이고 Alloy는 앱 EC2에서 100MB로 제한한다. Loki·Prometheus·n8n 데이터는 해당 EC2 Docker 볼륨에만 남아 인스턴스 교체 시 복구하지 않는다.
 
 ### 최초 n8n 설정

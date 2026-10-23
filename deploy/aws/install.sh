@@ -40,7 +40,13 @@ case "$role" in
     cp /opt/cinema/release/monitoring/loki-rules/fake/cinema-alerts.yml /opt/cinema/monitoring/loki-rules/fake/cinema-alerts.yml
     cp /opt/cinema/release/monitoring/workflows/cinema-ai-alerts.json /opt/cinema/monitoring/workflows/cinema-ai-alerts.json
     password="$(aws ssm get-parameter --name /cinema/grafana-admin-password --with-decryption --query Parameter.Value --output text)"
-    n8n_encryption_key="$(aws ssm get-parameter --name /cinema/n8n-encryption-key --with-decryption --query Parameter.Value --output text)"
+    n8n_encryption_key=""
+    if [[ -f /opt/cinema/monitoring/.env ]]; then
+      n8n_encryption_key="$(sed -n 's/^N8N_ENCRYPTION_KEY=//p' /opt/cinema/monitoring/.env | head -n 1)"
+    fi
+    if [[ -z "$n8n_encryption_key" ]]; then
+      n8n_encryption_key="$(openssl rand -hex 32)"
+    fi
     printf 'GRAFANA_ADMIN_PASSWORD=%s\nN8N_ENCRYPTION_KEY=%s\n' "$password" "$n8n_encryption_key" >/opt/cinema/monitoring/.env
     chmod 600 /opt/cinema/monitoring/.env
     cd /opt/cinema/monitoring
