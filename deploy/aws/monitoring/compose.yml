@@ -73,7 +73,7 @@ services:
       - n8n_data:/home/node/.n8n
     ports:
       - "127.0.0.1:5678:5678"
-    mem_limit: 350m
+    mem_limit: 650m
 
 volumes:
   prometheus_data:
