@@ -115,6 +115,7 @@ jobs:
             -v "$PWD/deploy/aws/app/alloy.alloy:/etc/alloy/config.alloy:ro" \
             grafana/alloy:v1.20.1 validate --stability.level=generally-available /etc/alloy/config.alloy
           node -e "const f=require('./deploy/aws/monitoring/workflows/cinema-ai-alerts.json'); const nodes=new Set(f.nodes.map(n=>n.name)); if(!nodes.has('Alertmanager Webhook')||!nodes.has('Slack Root Alert')||!nodes.has('OpenAI Incident Analysis')||!nodes.has('Slack AI Thread Reply')||f.active!==false) process.exit(1); const hook=f.nodes.find(n=>n.name==='Alertmanager Webhook').parameters.path; const am=require('fs').readFileSync('./deploy/aws/monitoring/alertmanager.yml','utf8'); if(!am.includes('/webhook/'+hook)) process.exit(1);"
+          node deploy/aws/tests/monitoring_workflow_test.cjs
       - name: Check AWS web Nginx configuration
         run: docker run --rm -v "$PWD/deploy/aws/app/web.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.27-alpine nginx -t
 

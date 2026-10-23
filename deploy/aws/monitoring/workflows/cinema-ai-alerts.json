@@ -57,7 +57,7 @@
           "conditions": [
             {
               "id": "is-firing-condition",
-              "leftValue": "={{ $('Normalize Alert').first().json.status }}",
+              "leftValue": "={{ $('Normalize Alert').first().json.status === 'firing' && $('Slack Root Alert').first().json.ok === true && !!$('Slack Root Alert').first().json.ts ? 'firing' : 'skip' }}",
               "rightValue": "firing",
               "operator": { "type": "string", "operation": "equals" }
             }
@@ -168,7 +168,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const result = $('OpenAI Incident Analysis').first().json;\nconst root = $('Slack Root Alert').first().json;\nconst text = result.output_text ?? result.output?.flatMap((item) => item.content ?? []).find((part) => part.type === 'output_text')?.text;\nconst analysis = text || 'AI 분석 호출에 실패했습니다. 최초 Slack 장애 알림과 로그·지표는 유지되며, OpenAI 자격 증명과 n8n 실행 로그를 확인해 주세요.';\nconst prefix = text ? '*AI 원인 후보 (참고용)*' : '*AI 분석 실패*';\nreturn [{ json: { channel: 'CINEMA_ALERT_CHANNEL_ID', thread_ts: root.ts ?? '', text: `${prefix}\\n${analysis}`.slice(0, 12000) } }];"
+        "jsCode": "const result = $('OpenAI Incident Analysis').first().json;\nconst root = $('Slack Root Alert').first().json;\nconst text = result.output_text ?? result.output?.flatMap((item) => item.content ?? []).find((part) => part.type === 'output_text')?.text;\nconst analysis = text || 'AI 분석 호출에 실패했습니다. 최초 Slack 장애 알림과 로그·지표는 유지되며, OpenAI 자격 증명과 n8n 실행 로그를 확인해 주세요.';\nconst prefix = text ? '*AI 원인 후보 (참고용)*' : '*AI 분석 실패*';\nreturn [{ json: { channel: root.channel, thread_ts: root.ts, text: `${prefix}\\n${analysis}`.slice(0, 12000) } }];"
       },
       "id": "a77d12f1-231d-4e58-ad19-3f47f4c84077",
       "name": "Prepare Slack Thread Reply",

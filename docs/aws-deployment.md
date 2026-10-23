@@ -72,9 +72,9 @@ aws ssm start-session --profile cinema --region ap-northeast-2 --target <monitor
 3. `deploy/aws/monitoring/workflows/cinema-ai-alerts.json`을 가져온다. HTTP Header Auth 자격 증명을 두 개 만들고 해당 HTTP Request 노드에 연결한다.
    - Slack 자격 증명: 헤더 이름 `Authorization`, 값 `Bearer <Slack bot token>`; 봇에 `chat:write` 권한을 주고 알림 채널에 초대한 뒤 채널 ID를 확인한다.
    - OpenAI 자격 증명: 헤더 이름 `Authorization`, 값 `Bearer <OpenAI API key>`.
-4. 워크플로의 `Slack Root Alert`와 `Prepare Slack Thread Reply` 노드에서 `CINEMA_ALERT_CHANNEL_ID`를 실제 채널 ID로 바꾸고, `Slack AI Thread Reply` 노드에 Slack 자격 증명을 연결한다. `OpenAI Incident Analysis`에는 OpenAI 자격 증명을 연결한다.
+4. 워크플로의 `Slack Root Alert` 노드에서 `CINEMA_ALERT_CHANNEL_ID`를 실제 채널 ID로 바꾼다. `Slack Root Alert`와 `Slack AI Thread Reply`에 Slack 자격 증명을 연결하고, `OpenAI Incident Analysis`에는 OpenAI 자격 증명을 연결한다.
 5. 워크플로를 저장하고 활성화한다. Grafana/Alertmanager가 보내는 root 장애 알림이 먼저 Slack에 올라오고, firing 알림에 대해서만 분석 결과가 같은 스레드에 이어진다. resolved 알림은 root 해소 알림만 보낸다.
 
-워크플로는 가장 최근 ERROR 로그에서 `com.example` Java stack frame과 40자리 배포 SHA를 찾을 때만 해당 커밋의 공개 GitHub 원본 파일을 읽는다. 주변 코드 최대 80줄과 제한된 로그·지표만 OpenAI에 전달한다. 이메일·전화번호·토큰·비밀번호처럼 식별되는 패턴은 전송 전에 가린다. 로그나 SHA가 없으면 코드 관련 원인을 추측하지 않는다. 분석은 후보와 확인 순서를 제안할 뿐 자동 조치하지 않는다. OpenAI 요청이 실패해도 최초 Slack 알림은 남고 스레드에 실패 안내를 붙인다.
+워크플로는 가장 최근 ERROR 로그에서 `com.example` Java stack frame과 40자리 배포 SHA를 찾을 때만 해당 커밋의 공개 GitHub 원본 파일을 읽는다. 주변 코드 최대 80줄과 제한된 로그·지표만 OpenAI에 전달한다. 이메일·전화번호·토큰·비밀번호처럼 식별되는 패턴은 전송 전에 가린다. 로그나 SHA가 없으면 코드 관련 원인을 추측하지 않는다. 분석은 후보와 확인 순서를 제안할 뿐 자동 조치하지 않는다. Slack 최초 알림이 실패하면 분석을 진행하지 않는다. OpenAI 요청이 실패해도 최초 Slack 알림은 남고 스레드에 실패 안내를 붙인다.
 
 현재 임계값은 API 대상 scrape 실패 1분, 5xx 비율 5% 초과가 5분 지속, EC2 CPU 80%·메모리 85%·루트 디스크 80% 초과가 5분 지속, MySQL/Redis exporter 실패 1분, API ERROR 로그 5분 내 5건 이상이다. Grafana/Prometheus의 Alerting 화면과 Slack 테스트 알림으로 최초 연결을 확인한다.
