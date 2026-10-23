@@ -58,7 +58,7 @@ terraform apply -var='budget_email=본인@example.com'
 - Alloy는 앱 EC2의 Docker JSON 로그 파일을 읽어 모니터링 EC2의 Loki에 보낸다. Docker 로그는 컨테이너마다 10MB 파일 3개로 회전하고 Loki는 로그를 7일 보관한다.
 - Grafana는 Prometheus, Loki, Alertmanager를 데이터 소스로 사용한다. 기존 대시보드는 Grafana 볼륨에 보존된다.
 - n8n은 SQLite 데이터와 암호화된 자격 증명을 Docker 볼륨에 보관한다. 암호화 키는 모니터링 EC2의 `/opt/cinema/monitoring/.env`에 보관하며 재배포 때 바뀌지 않는다. 실행 성공·실패 본문은 SQLite에 남기지 않도록 설정한다.
-- 모니터링 EC2는 `t3.small`, 20GB를 유지한다. Compose의 메모리 상한 합은 약 1.5GB이고 Alloy는 앱 EC2에서 100MB로 제한한다. Loki·Prometheus·n8n 데이터는 해당 EC2 Docker 볼륨에만 남아 인스턴스 교체 시 복구하지 않는다.
+- 모니터링 EC2는 `t3.small`, 20GB를 유지한다. Compose의 메모리 상한 합은 1.8GB이고, n8n은 시작 시 메모리 부족을 막기 위해 650MB로 제한한다. Alloy는 앱 EC2에서 100MB로 제한한다. Loki·Prometheus·n8n 데이터는 해당 EC2 Docker 볼륨에만 남아 인스턴스 교체 시 복구하지 않는다.
 
 ### 최초 n8n 설정
 
