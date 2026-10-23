@@ -1,0 +1,81 @@
+groups:
+  - name: cinema-service
+    rules:
+      - alert: CinemaApiDown
+        expr: up{job="cinema-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cinema-api
+        annotations:
+          summary: Cinema API scrape target is unavailable
+          description: Prometheus cannot scrape the Cinema API for more than one minute.
+
+      - alert: CinemaHttp5xxRateHigh
+        expr: |
+          sum by (version) (rate(http_server_requests_seconds_count{job="cinema-api",status=~"5.."}[1m]))
+          /
+          clamp_min(sum by (version) (rate(http_server_requests_seconds_count{job="cinema-api"}[1m])), 0.001)
+          > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: cinema-api
+        annotations:
+          summary: Cinema API 5xx rate is above 5 percent
+          description: More than 5 percent of API requests returned 5xx for five minutes.
+
+      - alert: CinemaInstanceCpuHigh
+        expr: 1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) > 0.80
+        for: 5m
+        labels:
+          severity: warning
+          service: cinema-infrastructure
+        annotations:
+          summary: EC2 CPU usage is above 80 percent
+          description: CPU usage on {{ $labels.instance }} has remained above 80 percent for five minutes.
+
+      - alert: CinemaInstanceMemoryHigh
+        expr: 1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: cinema-infrastructure
+        annotations:
+          summary: EC2 memory usage is above 85 percent
+          description: Memory usage on {{ $labels.instance }} has remained above 85 percent for five minutes.
+
+      - alert: CinemaInstanceDiskHigh
+        expr: |
+          1 - (
+            node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay"}
+            /
+            node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay"}
+          ) > 0.80
+        for: 5m
+        labels:
+          severity: warning
+          service: cinema-infrastructure
+        annotations:
+          summary: EC2 root disk usage is above 80 percent
+          description: Root disk usage on {{ $labels.instance }} has remained above 80 percent for five minutes.
+
+      - alert: CinemaDatabaseExporterDown
+        expr: up{job="mysql"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: mysql
+        annotations:
+          summary: MySQL exporter is unavailable
+          description: Prometheus cannot scrape the MySQL exporter for more than one minute.
+
+      - alert: CinemaRedisExporterDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: Redis exporter is unavailable
+          description: Prometheus cannot scrape the Redis exporter for more than one minute.

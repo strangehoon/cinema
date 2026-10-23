@@ -1,0 +1,13 @@
+groups:
+  - name: cinema-log-alerts
+    interval: 1m
+    rules:
+      - alert: CinemaErrorLogsBurst
+        expr: sum(count_over_time({service="cinema-api", level="ERROR"}[5m])) >= 5
+        for: 0m
+        labels:
+          severity: critical
+          service: cinema-api
+        annotations:
+          summary: Cinema API produced at least five error logs in five minutes
+          description: At least five ERROR-level API log entries were recorded during the last five minutes.

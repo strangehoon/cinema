@@ -1,0 +1,10 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: cinema-alertmanager
+    receivers:
+      - uid: cinema-alertmanager
+        type: prometheus-alertmanager
+        settings:
+          url: http://alertmanager:9093

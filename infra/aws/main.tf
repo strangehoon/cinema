@@ -105,6 +105,12 @@ resource "aws_instance" "node" {
     delete_on_termination = true
   }
 
+  # Preserve existing EC2 root volumes when the latest AL2023 AMI or
+  # provider-reported public IP setting changes. Replace nodes explicitly.
+  lifecycle {
+    ignore_changes = [ami, associate_public_ip_address]
+  }
+
   tags = { Name = "cinema-${each.key}", Role = each.key }
 }
 

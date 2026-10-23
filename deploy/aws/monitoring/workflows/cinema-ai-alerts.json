@@ -1,0 +1,219 @@
+{
+  "name": "Cinema AI Incident Analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cinema-ai-alerts",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "8a4e7e3c-2cc6-4eea-9a78-41e69a17bfc2",
+      "name": "Alertmanager Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "cinema-ai-alerts-v1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $json.body ?? $json;\nconst alerts = (payload.alerts ?? []).slice(0, 10);\nconst status = String(payload.status ?? alerts[0]?.status ?? 'unknown').toLowerCase();\nconst summary = payload.commonAnnotations?.summary ?? alerts[0]?.annotations?.summary ?? 'Cinema alert received';\nconst descriptions = alerts.map((alert) => {\n  const labels = alert.labels ?? {};\n  const annotations = alert.annotations ?? {};\n  return `• ${labels.alertname ?? 'Alert'} (${labels.severity ?? 'unknown'}): ${annotations.summary ?? summary}${labels.instance ? ` [${labels.instance}]` : ''}`;\n}).join('\\n');\nconst version = payload.commonLabels?.version ?? alerts.find((alert) => alert.labels?.version)?.labels?.version ?? '';\nconst rootText = `${status === 'resolved' ? '✅' : '🚨'} *Cinema ${status === 'resolved' ? '장애 해소' : '장애 알림'}*\\n${descriptions || summary}\\n\n지문: ${alerts.map((alert) => alert.fingerprint).filter(Boolean).join(', ') || '없음'}`.slice(0, 3500);\nreturn [{ json: { status, summary, version, rootText, alerts, startedAt: alerts[0]?.startsAt ?? new Date().toISOString() } }];"
+      },
+      "id": "4f505dec-02b7-4521-8fb5-d7806285dc4b",
+      "name": "Normalize Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json; charset=utf-8" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { channel: 'CINEMA_ALERT_CHANNEL_ID', text: $('Normalize Alert').first().json.rootText, mrkdwn: true } }}",
+        "options": {
+          "response": { "response": { "neverError": true } }
+        }
+      },
+      "id": "fbdf278a-50ec-42aa-9085-076d9a7b0a4f",
+      "name": "Slack Root Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "is-firing-condition",
+              "leftValue": "={{ $('Normalize Alert').first().json.status === 'firing' && $('Slack Root Alert').first().json.ok === true && !!$('Slack Root Alert').first().json.ts ? 'firing' : 'skip' }}",
+              "rightValue": "firing",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "93db03c5-dfe0-4d8f-9e60-244ef071bc09",
+      "name": "Is Firing",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://loki:3100/loki/api/v1/query_range",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "query", "value": "{service=\"cinema-api\",level=\"ERROR\"}" },
+            { "name": "start", "value": "={{ new Date(Date.now() - 15 * 60 * 1000).toISOString() }}" },
+            { "name": "end", "value": "={{ new Date().toISOString() }}" },
+            { "name": "direction", "value": "backward" },
+            { "name": "limit", "value": "50" }
+          ]
+        },
+        "options": { "response": { "response": { "neverError": true } } }
+      },
+      "id": "018332ae-b578-4f19-804d-2d9c2ca59cdc",
+      "name": "Loki Error Logs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 180]
+    },
+    {
+      "parameters": {
+        "url": "http://prometheus:9090/api/v1/query",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "sum(rate(http_server_requests_seconds_count{job=\"cinema-api\",status=~\"5..\"}[1m])) by (status,uri,version)"
+            }
+          ]
+        },
+        "options": { "response": { "response": { "neverError": true } } }
+      },
+      "id": "82ea3456-5f1d-4b57-8fd2-f2ffb355e8dc",
+      "name": "Prometheus Error Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "const alert = $('Normalize Alert').first().json;\nconst loki = $('Loki Error Logs').first().json;\nconst results = loki.data?.result ?? loki.body?.data?.result ?? [];\nconst lines = results.flatMap((stream) => stream.values ?? []).map((entry) => entry[1]).slice(0, 25);\nconst shaFromLogs = lines.join('\\n').match(/\\bversion=([a-f0-9]{40})\\b/i)?.[1] ?? '';\nconst version = /^[a-f0-9]{40}$/i.test(alert.version) ? alert.version : shaFromLogs;\nconst frame = lines.join('\\n').match(/at\\s+([\\w.$]+)\\([^()]*\\.java:(\\d+)\\)/);\nconst className = frame?.[1]?.split('$')[0] ?? '';\nconst lineNumber = frame ? Number(frame[2]) : 0;\nconst sourcePath = className.startsWith('com.example.') ? `src/main/java/${className.replaceAll('.', '/')}.java` : '';\nconst sourceUrl = version && sourcePath ? `https://raw.githubusercontent.com/strangehoon/cinema/${version}/${sourcePath}` : '';\nconst redact = (value) => String(value ?? '')\n  .replace(/(authorization|password|token|secret|api[_-]?key|payment[_-]?key|user[_-]?id|customer[_-]?id|member[_-]?id|order[_-]?id)\\s*[:=]\\s*[^\\s,;]+/gi, '$1=[REDACTED]')\n  .replace(/\\bBearer\\s+[^\\s,;]+/gi, 'Bearer [REDACTED]')\n  .replace(/\\b[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}\\b/g, '[EMAIL]')\n  .replace(/\\b\\d{2,3}-\\d{3,4}-\\d{4}\\b/g, '[PHONE]')\n  .replace(/\\b(?:sk-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]+|eyJ[A-Za-z0-9_-]{20,})\\b/g, '[TOKEN]');\nconst metrics = $('Prometheus Error Metrics').first().json;\nconst metricRows = metrics.data?.result ?? metrics.body?.data?.result ?? [];\nreturn [{ json: { version, sourceUrl, lineNumber, logs: redact(lines.join('\\n').slice(0, 12000)), metrics: redact(JSON.stringify(metricRows).slice(0, 4000)), alertStatus: alert.status, summary: redact(alert.summary) } }];"
+      },
+      "id": "8613040b-e241-49ba-9351-e0387ff62ee0",
+      "name": "Select Exact Deployment Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 180]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.sourceUrl || 'https://raw.githubusercontent.com/strangehoon/cinema/0000000000000000000000000000000000000000/src/main/java/NotFound.java' }}",
+        "options": { "response": { "response": { "responseFormat": "text", "neverError": true } } }
+      },
+      "id": "af78b928-b6b7-4c7e-9937-ff0b44722090",
+      "name": "Read Deployed Source",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "const context = $('Select Exact Deployment Context').first().json;\nconst response = $('Read Deployed Source').first().json;\nlet source = typeof response === 'string' ? response : (response.data ?? response.body ?? '');\nif (typeof source !== 'string') source = JSON.stringify(source);\nconst sourceLines = source.split('\\n');\nlet code = '';\nif (context.lineNumber > 0 && sourceLines.length > 1) {\n  const from = Math.max(0, context.lineNumber - 41);\n  const to = Math.min(sourceLines.length, context.lineNumber + 40);\n  code = sourceLines.slice(from, to).map((line, index) => `${from + index + 1}: ${line}`).join('\\n').slice(0, 8000);\n}\nconst codeContext = context.sourceUrl && code ? `Exact deployment source (${context.version}, ${context.sourceUrl}):\\n${code}` : `Exact deployment source is unavailable. version=${context.version || 'unknown'}, source=${context.sourceUrl || 'no Java stack frame found'}. Do not infer code details.`;\nconst prompt = `장애 알림: ${context.summary} (상태: ${context.alertStatus})\\n배포 SHA: ${context.version || '로그에서 확인 불가'}\\n\\n최근 15분 ERROR 로그(민감정보 마스킹 후):\\n${context.logs || 'ERROR 로그가 조회되지 않았습니다.'}\\n\\n현재 API 5xx 지표 요약:\\n${context.metrics || '지표를 조회할 수 없습니다.'}\\n\\n${codeContext}\\n\\n한국어로 간결하게 답하세요. 1) 가능성이 높은 원인 후보를 근거와 함께 최대 3개, 2) 근거가 부족하면 불확실성을 명시, 3) 운영자가 다음으로 확인할 항목을 순서대로 제시하세요. 코드 변경이나 자동 복구를 지시하지 말고, 자동 조치는 수행하지 않았다고 밝혀주세요.`;\nreturn [{ json: { prompt } }];"
+      },
+      "id": "535a5117-cd62-486d-a6e5-76fe2ac3ebc8",
+      "name": "Build Sanitized AI Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 180]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [ { "name": "Content-Type", "value": "application/json" } ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'gpt-6-luna', reasoning: { effort: 'low' }, max_output_tokens: 800, store: false, input: [{ role: 'user', content: $json.prompt }] } }}",
+        "options": { "response": { "response": { "neverError": true } } }
+      },
+      "id": "ac6e0f02-5737-4e6d-910d-bf57fe582843",
+      "name": "OpenAI Incident Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 180],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $('OpenAI Incident Analysis').first().json;\nconst root = $('Slack Root Alert').first().json;\nconst text = result.output_text ?? result.output?.flatMap((item) => item.content ?? []).find((part) => part.type === 'output_text')?.text;\nconst analysis = text || 'AI 분석 호출에 실패했습니다. 최초 Slack 장애 알림과 로그·지표는 유지되며, OpenAI 자격 증명과 n8n 실행 로그를 확인해 주세요.';\nconst prefix = text ? '*AI 원인 후보 (참고용)*' : '*AI 분석 실패*';\nreturn [{ json: { channel: root.channel, thread_ts: root.ts, text: `${prefix}\\n${analysis}`.slice(0, 12000) } }];"
+      },
+      "id": "a77d12f1-231d-4e58-ad19-3f47f4c84077",
+      "name": "Prepare Slack Thread Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2440, 180]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [ { "name": "Content-Type", "value": "application/json; charset=utf-8" } ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": { "response": { "response": { "neverError": true } } }
+      },
+      "id": "bf674b4d-a814-416a-a259-031cd341132c",
+      "name": "Slack AI Thread Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2660, 180]
+    }
+  ],
+  "connections": {
+    "Alertmanager Webhook": { "main": [[{ "node": "Normalize Alert", "type": "main", "index": 0 }]] },
+    "Normalize Alert": { "main": [[{ "node": "Slack Root Alert", "type": "main", "index": 0 }]] },
+    "Slack Root Alert": { "main": [[{ "node": "Is Firing", "type": "main", "index": 0 }]] },
+    "Is Firing": { "main": [[{ "node": "Loki Error Logs", "type": "main", "index": 0 }], []] },
+    "Loki Error Logs": { "main": [[{ "node": "Prometheus Error Metrics", "type": "main", "index": 0 }]] },
+    "Prometheus Error Metrics": { "main": [[{ "node": "Select Exact Deployment Context", "type": "main", "index": 0 }]] },
+    "Select Exact Deployment Context": { "main": [[{ "node": "Read Deployed Source", "type": "main", "index": 0 }]] },
+    "Read Deployed Source": { "main": [[{ "node": "Build Sanitized AI Prompt", "type": "main", "index": 0 }]] },
+    "Build Sanitized AI Prompt": { "main": [[{ "node": "OpenAI Incident Analysis", "type": "main", "index": 0 }]] },
+    "OpenAI Incident Analysis": { "main": [[{ "node": "Prepare Slack Thread Reply", "type": "main", "index": 0 }]] },
+    "Prepare Slack Thread Reply": { "main": [[{ "node": "Slack AI Thread Reply", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "none", "saveDataSuccessExecution": "none" },
+  "versionId": "a46c74e7-28b7-4f12-aae5-0137071f09e8",
+  "meta": { "templateCredsSetupCompleted": false },
+  "tags": []
+}

@@ -11,14 +11,26 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     @ExceptionHandler(RestClientException.class)
     public ApiResponse<Object> handlePaymentGatewayException(RestClientException e) {
+        log.error("Payment gateway request failed", e);
         return ApiResponse.of(HttpStatus.BAD_GATEWAY, "결제사 응답을 확인하지 못했습니다. 잠시 후 예매 내역을 확인해 주세요.", null);
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleUnexpectedException(Exception e) {
+        log.error("Unhandled server error", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.", null));
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)

@@ -92,13 +92,30 @@ jobs:
       - run: bash deploy/aws/tests/deploy_test.sh
       - name: Validate AWS Compose files
         run: |
-          export MYSQL_PASSWORD=test MYSQL_ROOT_PASSWORD=test GRAFANA_ADMIN_PASSWORD=test DB_PASSWORD=test
+          export MYSQL_PASSWORD=test MYSQL_ROOT_PASSWORD=test GRAFANA_ADMIN_PASSWORD=test N8N_ENCRYPTION_KEY=test DB_PASSWORD=test APP_VERSION=0123456789abcdef0123456789abcdef01234567
           export API_BLUE_IMAGE=example/api:blue API_GREEN_IMAGE=example/api:green
           export WEB_BLUE_IMAGE=example/web:blue WEB_GREEN_IMAGE=example/web:green
           for file in deploy/aws/common/compose.yml deploy/aws/mysql/compose.yml deploy/aws/redis/compose.yml deploy/aws/monitoring/compose.yml; do
             docker compose -f "$file" config --quiet
           done
           docker compose -f deploy/aws/app/compose.yml --profile blue --profile green config --quiet
+      - name: Validate monitoring configuration
+        run: |
+          docker run --rm \
+            -v "$PWD/deploy/aws/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
+            -v "$PWD/deploy/aws/monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro" \
+            --entrypoint=promtool prom/prometheus:v3.5.0 check config /etc/prometheus/prometheus.yml
+          docker run --rm \
+            -v "$PWD/deploy/aws/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro" \
+            --entrypoint=amtool prom/alertmanager:v0.34.1 check-config /etc/alertmanager/alertmanager.yml
+          docker run --rm \
+            -v "$PWD/deploy/aws/monitoring/loki.yml:/etc/loki/loki.yml:ro" \
+            grafana/loki:3.7.9 -config.file=/etc/loki/loki.yml -verify-config=true
+          docker run --rm \
+            -v "$PWD/deploy/aws/app/alloy.alloy:/etc/alloy/config.alloy:ro" \
+            grafana/alloy:v1.20.1 validate --stability.level=generally-available /etc/alloy/config.alloy
+          node -e "const f=require('./deploy/aws/monitoring/workflows/cinema-ai-alerts.json'); const nodes=new Set(f.nodes.map(n=>n.name)); if(!nodes.has('Alertmanager Webhook')||!nodes.has('Slack Root Alert')||!nodes.has('OpenAI Incident Analysis')||!nodes.has('Slack AI Thread Reply')||f.active!==false) process.exit(1); const hook=f.nodes.find(n=>n.name==='Alertmanager Webhook').parameters.path; const am=require('fs').readFileSync('./deploy/aws/monitoring/alertmanager.yml','utf8'); if(!am.includes('/webhook/'+hook)) process.exit(1);"
+          node deploy/aws/tests/monitoring_workflow_test.cjs
       - name: Check AWS web Nginx configuration
         run: docker run --rm -v "$PWD/deploy/aws/app/web.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.27-alpine nginx -t
 
