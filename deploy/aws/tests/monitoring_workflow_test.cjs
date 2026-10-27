@@ -48,4 +48,41 @@ const [fallback] = runCode('Prepare Slack Thread Reply', {
 assert.equal(fallback.json.thread_ts, '123.456');
 assert.match(fallback.json.text, /AI 분석 실패/);
 
+const deploymentSha = 'b557a7bdc2ddd03240f7dfb9d86fd9f972da1564';
+const [context] = runCode('Select Exact Deployment Context', {
+  'Normalize Alert': { status: 'firing', summary: 'API failure', version: deploymentSha },
+  'Loki Error Logs': { data: { result: [{ values: [[
+    '1',
+    'level=ERROR version=' + deploymentSha + ' requestId=req-123 password=top-secret user@example.com\n' +
+      '\tat com.example.reservation.ReservationService.reserve(ReservationService.java:42)',
+  ]] }] } },
+  'Prometheus Error Metrics': { data: { result: [] } },
+});
+assert.equal(context.json.version, deploymentSha);
+assert.equal(context.json.lineNumber, 42);
+assert.equal(context.json.sourceUrl,
+  `https://raw.githubusercontent.com/strangehoon/cinema/${deploymentSha}/src/main/java/com/example/reservation/ReservationService.java`);
+assert.match(context.json.logs, /requestId=req-123/);
+assert.doesNotMatch(context.json.logs, /top-secret|user@example.com/);
+
+const [analysis] = runCode('Build Sanitized AI Prompt', {
+  'Select Exact Deployment Context': context.json,
+  'Read Deployed Source': { data: Array.from({ length: 50 }, (_, index) => `line ${index + 1}`).join('\n') },
+});
+assert.match(analysis.json.prompt, /42: line 42/);
+assert.match(analysis.json.prompt, new RegExp(deploymentSha));
+assert.doesNotMatch(analysis.json.prompt, /top-secret|user@example.com/);
+
+const [unknownContext] = runCode('Select Exact Deployment Context', {
+  'Normalize Alert': { status: 'firing', summary: 'API failure', version: '' },
+  'Loki Error Logs': { data: { result: [] } },
+  'Prometheus Error Metrics': { data: { result: [] } },
+});
+const [unknownAnalysis] = runCode('Build Sanitized AI Prompt', {
+  'Select Exact Deployment Context': unknownContext.json,
+  'Read Deployed Source': {},
+});
+assert.equal(unknownContext.json.sourceUrl, '');
+assert.match(unknownAnalysis.json.prompt, /Do not infer code details/);
+
 console.log('Monitoring workflow checks passed');
