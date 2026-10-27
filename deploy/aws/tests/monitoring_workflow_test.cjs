@@ -79,11 +79,36 @@ assert.equal(nestedContext.json.lineNumber, 47);
 
 const [analysis] = runCode('Build Sanitized AI Prompt', {
   'Select Exact Deployment Context': context.json,
-  'Read Deployed Source': { data: Array.from({ length: 50 }, (_, index) => `line ${index + 1}`).join('\n') },
+  'Read Deployed Source': { data: ['package com.example.reservation;', 'public class ReservationService {',
+    ...Array.from({ length: 48 }, (_, index) => `line ${index + 3}`)].join('\n') },
 });
 assert.match(analysis.json.prompt, /42: line 42/);
 assert.match(analysis.json.prompt, new RegExp(deploymentSha));
 assert.doesNotMatch(analysis.json.prompt, /top-secret|user@example.com/);
+assert.equal(analysis.json.sourceReference,
+  `https://github.com/strangehoon/cinema/blob/${deploymentSha}/src/main/java/com/example/reservation/ReservationService.java#L42`);
+
+const [referencedReply] = runCode('Prepare Slack Thread Reply', {
+  'OpenAI Incident Analysis': { output_text: 'Possible cause requires investigation.' },
+  'Slack Root Alert': { ok: true, channel: 'C123', ts: '123.456' },
+  'Build Sanitized AI Prompt': analysis.json,
+});
+assert.match(referencedReply.json.text, new RegExp(deploymentSha));
+assert.match(referencedReply.json.text, /ReservationService\.java#L42/);
+
+const [failedSource] = runCode('Build Sanitized AI Prompt', {
+  'Select Exact Deployment Context': context.json,
+  'Read Deployed Source': { data: '404: Not Found\nThe requested file is unavailable.' },
+});
+assert.equal(failedSource.json.sourceReference, '');
+assert.match(failedSource.json.prompt, /Do not infer code details/);
+const [unreferencedReply] = runCode('Prepare Slack Thread Reply', {
+  'OpenAI Incident Analysis': { output_text: 'Insufficient evidence.' },
+  'Slack Root Alert': { ok: true, channel: 'C123', ts: '123.456' },
+  'Build Sanitized AI Prompt': failedSource.json,
+});
+assert.match(unreferencedReply.json.text, /배포 코드 근거\*: 조회되지 않음/);
+assert.doesNotMatch(unreferencedReply.json.text, /ReservationService\.java#L42/);
 
 const [unknownContext] = runCode('Select Exact Deployment Context', {
   'Normalize Alert': { status: 'firing', summary: 'API failure', version: '' },
@@ -96,5 +121,6 @@ const [unknownAnalysis] = runCode('Build Sanitized AI Prompt', {
 });
 assert.equal(unknownContext.json.sourceUrl, '');
 assert.match(unknownAnalysis.json.prompt, /Do not infer code details/);
+assert.equal(unknownAnalysis.json.sourceReference, '');
 
 console.log('Monitoring workflow checks passed');
