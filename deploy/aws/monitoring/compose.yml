@@ -42,6 +42,8 @@ services:
       - ./loki.yml:/etc/loki/loki.yml:ro
       - ./loki-rules:/etc/loki/rules:ro
       - loki_data:/loki
+    ports:
+      - "10.20.1.40:3100:3100"
     mem_limit: 250m
 
   n8n:
