@@ -21,16 +21,24 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     @ExceptionHandler(RestClientException.class)
     public ApiResponse<Object> handlePaymentGatewayException(RestClientException e) {
-        log.error("Payment gateway request failed", e);
+        log.error("Payment gateway request failed\n{}", safeStackTrace(e));
         return ApiResponse.of(HttpStatus.BAD_GATEWAY, "결제사 응답을 확인하지 못했습니다. 잠시 후 예매 내역을 확인해 주세요.", null);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleUnexpectedException(Exception e) {
-        log.error("Unhandled server error", e);
+        log.error("Unhandled server error\n{}", safeStackTrace(e));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.", null));
+    }
+
+    private String safeStackTrace(Exception exception) {
+        StringBuilder trace = new StringBuilder(exception.getClass().getName());
+        for (StackTraceElement frame : exception.getStackTrace()) {
+            trace.append("\n\tat ").append(frame);
+        }
+        return trace.toString();
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)

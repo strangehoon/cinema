@@ -30,7 +30,7 @@ class GlobalExceptionHandlerTest {
         void fail_unexpected_error(CapturedOutput output) {
             // given
             MDC.put("requestId", "request-test-123");
-            IllegalStateException exception = new IllegalStateException("private-detail");
+            IllegalStateException exception = new IllegalStateException("password=top-secret");
 
             // when
             var response = handler.handleUnexpectedException(exception);
@@ -39,6 +39,8 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(response.getBody().getMessage()).isEqualTo("서버 내부 오류가 발생했습니다.");
             assertThat(output).contains("Unhandled server error");
+            assertThat(output).contains("at com.example.common.GlobalExceptionHandlerTest");
+            assertThat(output).doesNotContain("password=top-secret");
         }
     }
 
@@ -67,15 +69,16 @@ class GlobalExceptionHandlerTest {
         @DisplayName("결제사 오류는 장애 로그로 기록하고 상세 오류를 응답에 노출하지 않는다")
         void fail_gateway(CapturedOutput output) {
             // given
-            RestClientException exception = new RestClientException("gateway internal detail");
+            RestClientException exception = new RestClientException("Authorization: Bearer private-token");
 
             // when
             ApiResponse<Object> response = handler.handlePaymentGatewayException(exception);
 
             // then
             assertThat(response.getCode()).isEqualTo("502");
-            assertThat(response.getMessage()).doesNotContain("gateway internal detail");
+            assertThat(response.getMessage()).doesNotContain("private-token");
             assertThat(output).contains("Payment gateway request failed");
+            assertThat(output).doesNotContain("private-token");
         }
     }
 }
