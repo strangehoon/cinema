@@ -65,6 +65,18 @@ assert.equal(context.json.sourceUrl,
 assert.match(context.json.logs, /requestId=req-123/);
 assert.doesNotMatch(context.json.logs, /top-secret|user@example.com/);
 
+const [nestedContext] = runCode('Select Exact Deployment Context', {
+  'Normalize Alert': { status: 'firing', summary: 'API failure', version: deploymentSha },
+  'Loki Error Logs': { data: { result: [{ values: [[
+    '2',
+    'level=ERROR version=' + deploymentSha + '\n' +
+      '\tat com.example.reservation.ReservationService$Worker.run(ReservationService.java:47)',
+  ]] }] } },
+  'Prometheus Error Metrics': { data: { result: [] } },
+});
+assert.equal(nestedContext.json.sourceUrl, context.json.sourceUrl);
+assert.equal(nestedContext.json.lineNumber, 47);
+
 const [analysis] = runCode('Build Sanitized AI Prompt', {
   'Select Exact Deployment Context': context.json,
   'Read Deployed Source': { data: Array.from({ length: 50 }, (_, index) => `line ${index + 1}`).join('\n') },
