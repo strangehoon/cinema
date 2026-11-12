@@ -24,4 +24,4 @@
 
 ## 📃 ERD
 
-<img src = "https://github.com/user-attachments/assets/64384a19-3e04-4d7a-8d8c-0cfdbb800d15" height = "520px" width = "920px" allign = "left">
+![Cinema ERD](docs/images/erd.png)
